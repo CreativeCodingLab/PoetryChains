@@ -19,11 +19,15 @@ public class PoetryChain
   {
     for (int i = 0; i < lines.size(); i++)
     {
-      lines.get(i).printLine();
+	    Line line = lines.get(i);
+       System.out.print("<" + line.poem.title + ">:\t");
+       lines.get(i).printLine();
+     
       if (i < lines.size() - 1)
       {
-        System.out.println("<" + words.get(i).word + ">");
+        System.out.print("\t <" + words.get(i).word + ">");
       }
+ System.out.println("");
     }
   }
 

@@ -31,7 +31,7 @@ public class Line
     {
       word.printWord();
     }
-    System.out.println("");
+    System.out.print("");
   }
 
 }

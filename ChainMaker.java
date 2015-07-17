@@ -1,4 +1,4 @@
-
+import behaviorism.utils.Utils;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -20,20 +20,20 @@ public class ChainMaker {
   public static void main(String[] args)
   {
   
-	 int NUM_LINES = 20000;
+	 int NUM_LINES = 2000000;
 
 
 	  //1. LOAD STUFF IN AND DO INITIAL ANALYSIS
     Parser.loadInPoems(new File("EmilyDickinsonPoems.txt"), NUM_LINES);
     Parser.rankWords();
-    Parser.rankLines();
+    //Parser.rankLines();
 
     //Parser.printPoems();
-    Parser.printWordRank(1, 10);
+    //Parser.printWordRank(1, 10);
     //Parser.printLineRank(3900, 5000);
 
-    PoetryChain pc = Parser.connectWords("wilderness", "society", 18, 20);
-    pc.printChain();
+   // PoetryChain pc = Parser.connectWords("eye", "eyes", 8,8);
+   // pc.printChain();
 //Parser.printPoems();
 
     //Parser.printCollocation("my");
@@ -41,18 +41,19 @@ public class ChainMaker {
     System.err.println("TOTAL NUMBER WORDS = " + Parser.rankedWords.size());
 
     //A
-           // makeChains();
+        //    makeChains();
     
 
     //or, B
-   // Word word = Utils.randomElement(Parser.rankedWords, 0, 200);
-     
-//makeNets(word, false); //add this datastruct back in
+    Word word = Utils.randomElement(Parser.rankedWords, 10000, 18000);
+     System.out.println("makeNets ... word = " + word + "\n\n");
+
+makeNets(word); //add this datastruct back in
  
   }
 
 
-  private void makeChains()
+  private static void makeChains()
   {
     List<PoetryChain> chains = Parser.connectWords(5, 9, 50);
     for (PoetryChain chain : chains)
@@ -62,5 +63,25 @@ public class ChainMaker {
 
     }
   }
+
+
+  
+  public static void makeNets(final Word word)
+  {
+
+    CollocationNet collocationNet = new CollocationNet();
+   
+
+    System.err.println("STARTING WORD = " + word);
+
+        List<Word> colos = collocationNet.getCollocations(word);
+	//
+	//startWord = Utils.randomElement(colos);
+      
+      	
+  }
+
+
+
 
 }

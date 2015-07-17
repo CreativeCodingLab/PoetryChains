@@ -370,11 +370,11 @@ public class Parser
     wordScanner = new Scanner(line.text);
     while (wordScanner.hasNext())
     {
-      String wordStr = wordScanner.next().toLowerCase().trim();
-      //String wordStr = wordScanner.next().trim();
+      //String wordStr = wordScanner.next().toLowerCase().trim();
+      String wordStr = wordScanner.next().trim();
       if (!wordStr.equals("--"))
       {
-        wordStr = wordStr.replaceAll("\\p{Punct}+", "");
+        //wordStr = wordStr.replaceAll("\\p{Punct}+", "");
       }
       currentWord = words.get(wordStr);
 
