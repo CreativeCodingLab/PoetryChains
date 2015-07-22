@@ -19,16 +19,52 @@ public class PoetryChain
   {
     for (int i = 0; i < lines.size(); i++)
     {
-	    Line line = lines.get(i);
-       System.out.print("<" + line.poem.title + ">:\t");
-       lines.get(i).printLine();
-     
+      Line line = lines.get(i);
+      System.out.print("<" + line.poem.title + ">:\t");
+      lines.get(i).printLine();
+
       if (i < lines.size() - 1)
       {
         System.out.print("\t <" + words.get(i).word + ">");
       }
- System.out.println("");
+      System.out.println("");
     }
+  }
+
+
+  public void printChainJSON() {
+    System.out.print("[\n");
+    
+    for (int i = 0; i < lines.size(); i++)
+    {
+      System.out.print("\t{\n");
+
+      Line line = lines.get(i);
+      System.out.print("\t\t\"title\":\"" + line.poem.title + "\",\n");
+      //lines.get(i).printLine();
+
+      System.out.print("\t\t\"line\":\"");
+      for (int j = 0; j < line.words.size(); j++) { 
+        Word w = line.words.get(j); 
+        System.out.print(w);
+        if (j < line.words.size() - 1) {
+          System.out.print(" ");
+        }
+      }
+      System.out.print("\",\n");
+
+
+      if (i < lines.size() - 1)
+      {
+        System.out.print("\t\t\"connector\":\"" + words.get(i).word + "\"\n");
+        System.out.print("\t},\n");
+      } else {
+        System.out.print("\t\t\"connector\":\"\"\n");
+         System.out.print("\t}\n");
+      }
+    }
+    System.out.print("]");
+        
   }
 
 }

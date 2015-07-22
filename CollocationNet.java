@@ -45,20 +45,18 @@ public class CollocationNet
 	public List<Word> getCollocations(Word word)
 	{
 
-		//word.printCollocationsRank();
+	//	word.printCollocationsRank();
 
 		Set<Word> collocationSet = word.collocations.keySet();
 
-		//System.out.println("here...\n");
-		//System.out.println(collocationSet);
+	//	System.out.println(collocationSet);
 
 
-		//List<Word> collocations =
 		//  Utils.randomElements(collocationSet, Math.min(MAX_COLLOCATES, collocationSet.size() - 1), 0, 5000); 
 		List<Word> collocations =
-			randomElements(collocationSet, Math.min(MAX_COLLOCATES, collocationSet.size() - 1));
+			randomElements(collocationSet, Math.min(MAX_COLLOCATES, collocationSet.size() ));
 
-		//System.out.println("MAX_COLLOCATES = " + MAX_COLLOCATES + ", collocationSet.size() - 1 = " + (collocationSet.size() - 1) + ", and size = " + collocations.size());
+	//	System.out.println("MAX_COLLOCATES = " + MAX_COLLOCATES + ", collocationSet.size()  = " + (collocationSet.size() ) + ", and size = " + collocations.size());
 		filterShortWords(collocations);
 
 
