@@ -93,24 +93,39 @@ class Main
         mesh = @getTextMesh(geometry)
         textAnchor = new THREE.Object3D()
         textAnchor.add(mesh)
-        textAnchor.scale.multiplyScalar(0.005)
+        # textAnchor.scale.multiplyScalar(SCALE_TEXT)
         textAnchor.scale.multiplyScalar(-1)
         textAnchor
+
+    getLineObject: (_line, index) =>
+        line_geometry = @getTextGeometry(_line.line)
+        line_layout = line_geometry.layout
+        glyph_positions = line_layout.glyphs.map (g) -> g.position
+
+        letterObjects = _line.line.split("").map (letter, index) =>
+            letter_geom = @getTextGeometry(letter)
+            letter_object = @getTextObject(letter_geom)
+            letter_object.position.x = - glyph_positions[index][0]
+            letter_object
+
+        # TODO: Pack up words...
+
+        lineObject = new THREE.Object3D()
+        lineObject.add.apply(lineObject, letterObjects)
+        lineObject.position.y = -index * line_layout.height
+        lineObject
 
     addChain: (text) =>
         chain = processChain(text)
 
-        lineObjects = chain.map (c, index) =>
-            geometry = @getTextGeometry(c.line)
-            textObject = @getTextObject(geometry)
-            textObject.position.y = 1 * index
-            textObject
+        lineObjects = chain.map @getLineObject
 
         chainObject = new THREE.Object3D()
         chainObject.add.apply(chainObject, lineObjects)
 
-        @scene.add(chainObject)
+        chainObject.scale.multiplyScalar(SCALE_TEXT)
 
+        @scene.add(chainObject)
 
     animate: =>
         requestAnimationFrame @animate
