@@ -52,8 +52,6 @@ class Main
         # edges = new THREE.EdgesHelper( object, 0x00ff00 );
         # @scene.add( edges );
 
-
-
     setTexture: (@texture) ->
         maxAni = @renderer.getMaxAnisotropy()
 
@@ -119,27 +117,41 @@ class Main
         lineObject._line = _line
         lineObject
 
+    positionLines = (line, index, array) =>
+        return line if index is 0
+
+        prev = array[index - 1]
+        prev_connector_idx = prev._line.connector_index
+        my_prev_connector_idx = line._line.my_prev_connector_index
+
+        line.position.x = prev.position.x
+        line.position.x += prev.children[prev_connector_idx].position.x
+        line.position.x -= line.children[my_prev_connector_idx].position.x
+        line
+
     addChain: (text) =>
         lineObjects = processChain(text)
             .map @getLineObject
+            .map positionLines
 
         chainObject = new THREE.Object3D()
         chainObject.add.apply(chainObject, lineObjects)
-
-        chainObject.children.forEach (line, index, array) ->
-            return if index is 0
-
-            prev = array[index - 1]
-            prev_connector_idx = prev._line.connector_index
-            my_prev_connector_idx = line._line.my_prev_connector_index
-
-            line.position.x = prev.position.x
-            line.position.x += prev.children[prev_connector_idx].position.x
-            line.position.x -= line.children[my_prev_connector_idx].position.x
-
         chainObject.scale.multiplyScalar(SCALE_TEXT)
-
         @scene.add(chainObject)
+
+        # d3.transition().duration(0)
+        #     .transition().duration(1e3)
+        #     .tween "fadeLine", ->
+        #         return (t) -> console.log(t)
+        #     .each "end", -> console.log "end one"
+        #     .transition().duration(1e3)
+        #     .tween "fadeLine", ->
+        #         return (t) -> console.log(t)
+        #     .each "end", -> console.log "end two"
+        #     .transition().duration(1e3)
+        #     .tween "fadeLine", ->
+        #         return (t) -> console.log(t)
+        #     .each "end", -> console.log "end three"
 
     animate: =>
         requestAnimationFrame @animate
