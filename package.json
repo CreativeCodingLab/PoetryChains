@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "dependencies": {
+    "browserify-middleware": "^7.0.0",
+    "coffeeify": "^1.1.0",
+    "cors": "^2.7.1",
+    "express": "^4.13.1",
+    "load-bmfont": "^1.2.3"
+  }
+}
