@@ -6,7 +6,7 @@ createOrbitViewer = require('three-orbit-viewer')(THREE)
 class Main
     constructor: ->
         console.log "Starting Vis"
-        
+
         @renderer = new THREE.WebGLRenderer()
         @renderer.setPixelRatio( window.devicePixelRatio )
         @renderer.setSize( window.innerWidth, window.innerHeight )
@@ -19,15 +19,16 @@ class Main
         # })
         # @renderer = app.renderer
 
+        @scene = new THREE.Scene()
+        # @scene = app.scene
+
         document.body.appendChild( @renderer.domElement )
 
         @camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 )
-        @camera.position.z = 2
+        @camera.position.z = -2
         @camera.position.x = -1
-        @camera.position.y = 1
-
-        @scene = new THREE.Scene()
-        # @scene = app.scene
+        @camera.position.y = 0
+        @camera.lookAt new THREE.Vector3(-1,0,0)
 
         light = new THREE.PointLight()
         light.position.set( 200, 100, 150 )
@@ -75,7 +76,8 @@ class Main
         mesh = new THREE.Mesh(geometry, material)
 
         @textAnchor.add(mesh)
-        @textAnchor.scale.multiplyScalar(-0.005)
+        @textAnchor.scale.multiplyScalar(0.005)
+        @textAnchor.scale.multiplyScalar(-1)
 
         @scene.add(@textAnchor)
 

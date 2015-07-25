@@ -14,11 +14,12 @@ font_loaded = new Promise (resolve) ->
 font_loaded.then (obj) ->
     vis.setTexture(obj.texture)
     vis.setFont(obj.font)
-    vis.tempAddText("foo bar")
+    # vis.tempAddText("foo bar")
 
 poetry_chain_loaded = new Promise (resolve) ->
+    console.log "Requesting poetry chain..."
     url = "#{window.location.href}api/get-chain.json"
     d3.json(url, resolve)
 
 poetry_chain_loaded.then (d) ->
-    console.log(d)
+    vis.tempAddText d[0][0].line 
