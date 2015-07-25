@@ -4,6 +4,7 @@ Shader = require "./shaders/sdf"
 createOrbitViewer = require('three-orbit-viewer')(THREE)
 
 class Main
+    SCALE_TEXT = 0.005
     constructor: ->
         console.log "Starting Vis"
 
@@ -25,7 +26,7 @@ class Main
         document.body.appendChild( @renderer.domElement )
 
         @camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 )
-        @camera.position.z = -2
+        @camera.position.z = -4
         @camera.position.x = -1
         @camera.position.y = 0
         @camera.lookAt new THREE.Vector3(-1,0,0)
@@ -37,17 +38,20 @@ class Main
         helper = new THREE.AxisHelper(50)
         @scene.add( helper )
 
-        grid_helper = new THREE.GridHelper(20, 10)
+        grid_helper = new THREE.GridHelper(20, 1)
+        grid_helper.rotateX(Math.PI / 2)
         @scene.add grid_helper
+
+        # grid_helper_y = new THREE.GridHelper(20, 1)
+        # @scene.add grid_helper_y
 
         geometry = new THREE.BoxGeometry( 10, 10, 10, 2, 2, 2 );
         object = new THREE.Mesh( geometry );
 
-        edges = new THREE.EdgesHelper( object, 0x00ff00 );
-
+        # edges = new THREE.EdgesHelper( object, 0x00ff00 );
         # @scene.add( edges );
 
-        @textAnchor = new THREE.Object3D()
+
 
     setTexture: (@texture) ->
         maxAni = @renderer.getMaxAnisotropy()
@@ -60,11 +64,12 @@ class Main
 
     setFont: (@font) ->
 
-    tempAddText: (text) ->
-        geometry = createGeometry
+    getTextGeometry: (text) =>
+        createGeometry
             text: text
             font: @font
 
+    getTextMesh: (geometry) ->
         material = new THREE.ShaderMaterial(Shader({
             map: @texture,
             smooth: 1/32,
@@ -72,14 +77,39 @@ class Main
             transparent: false,
             color: 'rgb(10, 10, 10)'
         }))
+        new THREE.Mesh(geometry, material)
 
-        mesh = new THREE.Mesh(geometry, material)
+    processChain = (chain) ->
+        chain.map (obj, i, array) ->
+            obj.connector_index = obj.line.indexOf obj.connector
+            if i > 0
+                prev = array[i-1].connector
+                prev_idx = obj.line.indexOf prev
+                obj.prev_connector = prev
+                obj.prev_connector_index = prev_idx
+            obj
 
-        @textAnchor.add(mesh)
-        @textAnchor.scale.multiplyScalar(0.005)
-        @textAnchor.scale.multiplyScalar(-1)
+    getTextObject: (geometry) ->
+        mesh = @getTextMesh(geometry)
+        textAnchor = new THREE.Object3D()
+        textAnchor.add(mesh)
+        textAnchor.scale.multiplyScalar(0.005)
+        textAnchor.scale.multiplyScalar(-1)
+        textAnchor
 
-        @scene.add(@textAnchor)
+    addChain: (text) =>
+        chain = processChain(text)
+
+        lineObjects = chain.map (c, index) =>
+            geometry = @getTextGeometry(c.line)
+            textObject = @getTextObject(geometry)
+            textObject.position.y = 1 * index
+            textObject
+
+        chainObject = new THREE.Object3D()
+        chainObject.add.apply(chainObject, lineObjects)
+
+        @scene.add(chainObject)
 
 
     animate: =>
