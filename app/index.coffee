@@ -1,5 +1,5 @@
-test = require "./test"
-Vis = require "./vis2"
+d3 = require "d3"
+Vis = require "./vis"
 
 vis = new Vis()
 
@@ -16,4 +16,9 @@ font_loaded.then (obj) ->
     vis.setFont(obj.font)
     vis.tempAddText("foo bar")
 
-console.log "hello from app"
+poetry_chain_loaded = new Promise (resolve) ->
+    url = "#{window.location.href}api/get-chain.json"
+    d3.json(url, resolve)
+
+poetry_chain_loaded.then (d) ->
+    console.log(d)
