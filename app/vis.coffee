@@ -1,7 +1,9 @@
 window.THREE = require("three")
 createGeometry = require('three-bmfont-text')
 Shader = require "./shaders/sdf"
+xtend = require 'xtend'
 createOrbitViewer = require('three-orbit-viewer')(THREE)
+
 
 class Main
     SCALE_TEXT = 0.005
@@ -116,12 +118,14 @@ class Main
         lineObject
 
     addChain: (text) =>
-        chain = processChain(text)
-
-        lineObjects = chain.map @getLineObject
+        lineObjects = processChain(text)
+            .map @getLineObject
 
         chainObject = new THREE.Object3D()
         chainObject.add.apply(chainObject, lineObjects)
+
+        # chainObject.children.forEach (line) ->
+            # debugger
 
         chainObject.scale.multiplyScalar(SCALE_TEXT)
 
