@@ -4,7 +4,6 @@ Shader = require "./shaders/sdf"
 xtend = require 'xtend'
 createOrbitViewer = require('three-orbit-viewer')(THREE)
 
-
 class Main
     SCALE_TEXT = 0.005
     constructor: ->
@@ -28,7 +27,7 @@ class Main
         document.body.appendChild( @renderer.domElement )
 
         @camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 )
-        @camera.position.z = -4
+        @camera.position.z = -10
         @camera.position.x = -1
         @camera.position.y = 0
         @camera.lookAt new THREE.Vector3(-1,0,0)
@@ -85,9 +84,12 @@ class Main
         chain.map (obj, i, array) ->
             obj.connector_index = obj.line.indexOf obj.connector
             if i > 0
-                prev = array[i-1].connector
-                prev_idx = obj.line.indexOf prev
-                obj.prev_connector = prev
+                prev = array[i-1]
+                prev_con = prev.connector
+                my_prev_idx = obj.line.indexOf prev_con
+                prev_idx = prev.connector_index
+                obj.prev_connector = prev_con
+                obj.my_prev_connector_index = my_prev_idx
                 obj.prev_connector_index = prev_idx
             obj
 
@@ -95,7 +97,6 @@ class Main
         mesh = @getTextMesh(geometry)
         textAnchor = new THREE.Object3D()
         textAnchor.add(mesh)
-        # textAnchor.scale.multiplyScalar(SCALE_TEXT)
         textAnchor.scale.multiplyScalar(-1)
         textAnchor
 
@@ -115,6 +116,7 @@ class Main
         lineObject = new THREE.Object3D()
         lineObject.add.apply(lineObject, letterObjects)
         lineObject.position.y = -index * line_layout.height
+        lineObject._line = _line
         lineObject
 
     addChain: (text) =>
@@ -124,8 +126,16 @@ class Main
         chainObject = new THREE.Object3D()
         chainObject.add.apply(chainObject, lineObjects)
 
-        # chainObject.children.forEach (line) ->
-            # debugger
+        chainObject.children.forEach (line, index, array) ->
+            return if index is 0
+
+            prev = array[index - 1]
+            prev_connector_idx = prev._line.connector_index
+            my_prev_connector_idx = line._line.my_prev_connector_index
+
+            line.position.x = prev.position.x
+            line.position.x += prev.children[prev_connector_idx].position.x
+            line.position.x -= line.children[my_prev_connector_idx].position.x
 
         chainObject.scale.multiplyScalar(SCALE_TEXT)
 
