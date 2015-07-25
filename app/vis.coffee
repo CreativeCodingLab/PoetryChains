@@ -76,7 +76,11 @@ class Main
             transparent: false,
             color: 'rgb(10, 10, 10)'
         }))
-        new THREE.Mesh(geometry, material)
+        # material.transparent = true
+        # material.opacity = 0.1
+        material.uniforms.opacity.value = 1.0
+        mesh = new THREE.Mesh(geometry, material)
+        mesh
 
     processChain = (chain) ->
         chain.map (obj, i, array) ->
@@ -91,12 +95,13 @@ class Main
                 obj.prev_connector_index = prev_idx
             obj
 
-    getTextObject: (geometry) ->
-        mesh = @getTextMesh(geometry)
-        textAnchor = new THREE.Object3D()
-        textAnchor.add(mesh)
-        textAnchor.scale.multiplyScalar(-1)
-        textAnchor
+    # DEPRECATED
+    # getTextObject: (mesh) ->
+    #     # mesh = @getTextMesh(geometry)
+    #     textAnchor = new THREE.Object3D()
+    #     textAnchor.add(mesh)
+    #     textAnchor.scale.multiplyScalar(-1)
+    #     textAnchor
 
     getLineObject: (_line, index) =>
         line_geometry = @getTextGeometry(_line.line)
@@ -105,9 +110,10 @@ class Main
 
         letterObjects = _line.line.split("").map (letter, index) =>
             letter_geom = @getTextGeometry(letter)
-            letter_object = @getTextObject(letter_geom)
-            letter_object.position.x = - glyph_positions[index][0]
-            letter_object
+            letter_mesh = @getTextMesh(letter_geom)
+            letter_mesh.scale.multiplyScalar(-1)
+            letter_mesh.position.x = - glyph_positions[index][0]
+            letter_mesh
 
         # TODO: Pack up words...
 
