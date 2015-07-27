@@ -13,6 +13,7 @@ class Main
         @renderer.setPixelRatio( window.devicePixelRatio )
         @renderer.setSize( window.innerWidth, window.innerHeight )
         @renderer.setClearColor( "#eeeeee" )
+
         # app = createOrbitViewer({
         #     clearColor: 'rgb(255, 255, 255)',
         #     clearAlpha: 1.0,
@@ -27,21 +28,23 @@ class Main
         document.body.appendChild( @renderer.domElement )
 
         @camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 )
-        @camera.position.z = -10
-        @camera.position.x = -1
-        @camera.position.y = 0
-        @camera.lookAt new THREE.Vector3(-1,0,0)
+        _x = -2
+        _y = -2
+        @camera.position.z = -5
+        @camera.position.x = _x
+        @camera.position.y = _y
+        @camera.lookAt new THREE.Vector3(_x,_y,0)
 
         light = new THREE.PointLight()
         light.position.set( 200, 100, 150 )
         @scene.add( light )
 
-        helper = new THREE.AxisHelper(50)
-        @scene.add( helper )
-
-        grid_helper = new THREE.GridHelper(20, 1)
-        grid_helper.rotateX(Math.PI / 2)
-        @scene.add grid_helper
+        # axis_helper = new THREE.AxisHelper(50)
+        # @scene.add( axis_helper )
+        #
+        # grid_helper = new THREE.GridHelper(20, 1)
+        # grid_helper.rotateX(Math.PI / 2)
+        # @scene.add grid_helper
 
         # grid_helper_y = new THREE.GridHelper(20, 1)
         # @scene.add grid_helper_y
@@ -71,14 +74,15 @@ class Main
     getTextMesh: (geometry) ->
         material = new THREE.ShaderMaterial(Shader({
             map: @texture,
-            smooth: 1/32,
+            smooth: 1/64,
             side: THREE.DoubleSide,
-            transparent: false,
+            transparent: true,
+            opacity: 0,
             color: 'rgb(10, 10, 10)'
         }))
         # material.transparent = true
         # material.opacity = 0.1
-        material.uniforms.opacity.value = 1.0
+        # material.uniforms.opacity.value = 0
         mesh = new THREE.Mesh(geometry, material)
         mesh
 
@@ -144,6 +148,15 @@ class Main
         chainObject.add.apply(chainObject, lineObjects)
         chainObject.scale.multiplyScalar(SCALE_TEXT)
         @scene.add(chainObject)
+
+        d3.selectAll(lineObjects).transition()
+            .duration (4000)
+            .delay (_,i) -> i * 5000
+            .ease "poly", 5
+            .tween "fadeOpacity", ->
+                i = d3.interpolate(0,0.5)
+                (t) -> this.children.forEach (mesh) ->
+                    mesh.material.uniforms.opacity.value = i(t)
 
         # d3.transition().duration(0)
         #     .transition().duration(1e3)

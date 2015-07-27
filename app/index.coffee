@@ -23,4 +23,8 @@ poetry_chain_loaded = new Promise (resolve) ->
     d3.json(url, resolve)
 
 poetry_chain_loaded.then (d) ->
+    # d.forEach (chain) ->
+    #     chain.forEach (line) ->
+    #         line.line = line.line.replace("--", "—")
+
     vis.addChain d[0]

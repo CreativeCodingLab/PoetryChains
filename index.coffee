@@ -1,5 +1,5 @@
 express = require("express")
-poetryChain = require "./poetry-chains-json"
+poetryFunctions = require "./poetry-chains-json"
 browserify = require 'browserify-middleware'
 coffeeify = require 'coffeeify'
 path = require "path"
@@ -13,7 +13,9 @@ app = express()
 app.use require("cors")()
 
 app.get("/api/get-chain.json", (request, response) ->
-    poetryChain().then (data) -> response.json(data)
+    poetryFunctions().collocationNet().then (data) ->
+        # console.log(data)
+        response.json(data)
 )
 
 app.get "/app", browserify("./app/index.coffee")
