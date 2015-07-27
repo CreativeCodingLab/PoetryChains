@@ -47,4 +47,4 @@ do ->
             d3.json(url, resolve)
 
         network_loaded.then (d) ->
-            console.log(d)
+            vis.addNetwork d

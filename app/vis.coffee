@@ -80,9 +80,6 @@ class Main
             opacity: 0,
             color: 'rgb(10, 10, 10)'
         }))
-        # material.transparent = true
-        # material.opacity = 0.1
-        # material.uniforms.opacity.value = 0
         mesh = new THREE.Mesh(geometry, material)
         mesh
 
@@ -98,14 +95,6 @@ class Main
                 obj.my_prev_connector_index = my_prev_idx
                 obj.prev_connector_index = prev_idx
             obj
-
-    # DEPRECATED
-    # getTextObject: (mesh) ->
-    #     # mesh = @getTextMesh(geometry)
-    #     textAnchor = new THREE.Object3D()
-    #     textAnchor.add(mesh)
-    #     textAnchor.scale.multiplyScalar(-1)
-    #     textAnchor
 
     getLineObject: (_line, index) =>
         line_geometry = @getTextGeometry(_line.line)
@@ -158,22 +147,25 @@ class Main
                 (t) -> this.children.forEach (mesh) ->
                     mesh.material.uniforms.opacity.value = i(t)
 
-        # d3.transition().duration(0)
-        #     .transition().duration(1e3)
-        #     .tween "fadeLine", ->
-        #         return (t) -> console.log(t)
-        #     .each "end", -> console.log "end one"
-        #     .transition().duration(1e3)
-        #     .tween "fadeLine", ->
-        #         return (t) -> console.log(t)
-        #     .each "end", -> console.log "end two"
-        #     .transition().duration(1e3)
-        #     .tween "fadeLine", ->
-        #         return (t) -> console.log(t)
-        #     .each "end", -> console.log "end three"
+    addNetwork: (network) =>
+        console.log(network)
 
     animate: =>
         requestAnimationFrame @animate
         @renderer.render( @scene, @camera )
 
 module.exports = Main
+
+# d3.transition().duration(0)
+#     .transition().duration(1e3)
+#     .tween "fadeLine", ->
+#         return (t) -> console.log(t)
+#     .each "end", -> console.log "end one"
+#     .transition().duration(1e3)
+#     .tween "fadeLine", ->
+#         return (t) -> console.log(t)
+#     .each "end", -> console.log "end two"
+#     .transition().duration(1e3)
+#     .tween "fadeLine", ->
+#         return (t) -> console.log(t)
+#     .each "end", -> console.log "end three"
