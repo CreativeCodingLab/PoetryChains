@@ -95,15 +95,22 @@ class Main
                 obj.prev_connector_index = prev_idx
             obj
 
+    getMeshFromString: (string) =>
+        string_geom = @getTextGeometry(string)
+        string_mesh = @getTextMesh(string_geom)
+        string_mesh.scale.multiplyScalar(-1)
+        string_mesh
+
     getLineObject: (_line, index) =>
         line_geometry = @getTextGeometry(_line.line)
         line_layout = line_geometry.layout
         glyph_positions = line_layout.glyphs.map (g) -> g.position
 
         letterObjects = _line.line.split("").map (letter, index) =>
-            letter_geom = @getTextGeometry(letter)
-            letter_mesh = @getTextMesh(letter_geom)
-            letter_mesh.scale.multiplyScalar(-1)
+            # letter_geom = @getTextGeometry(letter)
+            # letter_mesh = @getTextMesh(letter_geom)
+            # letter_mesh.scale.multiplyScalar(-1)
+            letter_mesh = @getMeshFromString(letter)
             letter_mesh.position.x = - glyph_positions[index][0]
             letter_mesh
 
