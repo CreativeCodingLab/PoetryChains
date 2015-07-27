@@ -27,9 +27,9 @@ class Main
         document.body.appendChild( @renderer.domElement )
 
         @camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 )
-        _x = -2
-        _y = -2
-        @camera.position.z = -5
+        _x = 0
+        _y = 0
+        @camera.position.z = -10
         @camera.position.x = _x
         @camera.position.y = _y
         @camera.lookAt new THREE.Vector3(_x,_y,0)
@@ -102,14 +102,11 @@ class Main
         string_mesh
 
     getLineObject: (_line, index) =>
-        line_geometry = @getTextGeometry(_line.line)
+        line_geometry = @getTextGeometry _line
         line_layout = line_geometry.layout
         glyph_positions = line_layout.glyphs.map (g) -> g.position
 
-        letterObjects = _line.line.split("").map (letter, index) =>
-            # letter_geom = @getTextGeometry(letter)
-            # letter_mesh = @getTextMesh(letter_geom)
-            # letter_mesh.scale.multiplyScalar(-1)
+        letterObjects = _line.split("").map (letter, index) =>
             letter_mesh = @getMeshFromString(letter)
             letter_mesh.position.x = - glyph_positions[index][0]
             letter_mesh
@@ -118,7 +115,7 @@ class Main
 
         lineObject = new THREE.Object3D()
         lineObject.add.apply(lineObject, letterObjects)
-        lineObject.position.y = -index * line_layout.height
+        lineObject.position.y = - (index || 0) * line_layout.height
         lineObject._line = _line
         lineObject
 
@@ -138,7 +135,10 @@ class Main
 
     addChain: (text) =>
         lineObjects = processChain(text)
-            .map @getLineObject
+            .map (line, index) =>
+                lineObject = @getLineObject(line.line, index)
+                lineObject._line = line
+                lineObject
             .map positionLines
 
         chainObject = new THREE.Object3D()
@@ -155,12 +155,60 @@ class Main
                 (t) -> this.children.forEach (mesh) ->
                     mesh.material.uniforms.opacity.value = i(t)
 
-    RADIUS = 1
-    addNode: (node) =>
-        console.log(node)
+    processNetwork = (network) =>
+        network.map (node, index, array) ->
+            if index is 0
+                node.amt = 1
+                node.val = node.word
+                return node
+            node.previous = previous = array[index - 1]
+            prev_index = previous.colocations
+                .map (d) -> d.val
+                .indexOf node.word
+            node.amt = previous.colocations[prev_index].amt
+            node.colocations.unshift
+                amt: previous.amt || 1
+                val: previous.word
+            node
+        .map (node, index) ->
+            if index > 0
+                prev_index = node.previous.colocations
+                    .map (d) -> d.val
+                    .indexOf node.word
+                console.log node.previous.colocations[prev_index]
+            domain = d3.range node.colocations.length + 1
+            scale = d3.scale.ordinal()
+                .domain domain
+                .rangePoints [0, 2 * Math.PI]
+            node.colocations.forEach (obj, index) ->
+                obj.radians = scale(index)
+                # console.log(Math.sin(obj.radians), Math.cos(obj.radians))
+            node
 
+    RADIUS = 500
     addNetwork: (network) =>
-        @addNode network[0]
+        network_object = new THREE.Object3D()
+
+        network = processNetwork network
+
+        center = @getLineObject(network[0].word)
+        center.children.forEach (mesh) ->
+            mesh.material.uniforms.opacity.value = 1
+        network_object.add center
+
+        colocation_nodes = network[0].colocations.map (obj) =>
+            line_object = @getLineObject obj.val
+            line_object.children.forEach (mesh) ->
+                mesh.material.uniforms.opacity.value = 1
+            line_object.position.x = Math.cos(obj.radians) * RADIUS
+            line_object.position.y = Math.sin(obj.radians) * RADIUS
+            line_object
+
+        network_object.add.apply network_object, colocation_nodes
+
+        network_object.scale.multiplyScalar(SCALE_TEXT)
+
+        @scene.add network_object
 
     animate: =>
         requestAnimationFrame @animate
