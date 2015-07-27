@@ -5,7 +5,6 @@ xtend = require 'xtend'
 createOrbitViewer = require('three-orbit-viewer')(THREE)
 
 class Main
-    SCALE_TEXT = 0.005
     constructor: ->
         console.log "Starting Vis"
 
@@ -39,18 +38,18 @@ class Main
         light.position.set( 200, 100, 150 )
         @scene.add( light )
 
-        # axis_helper = new THREE.AxisHelper(50)
-        # @scene.add( axis_helper )
-        #
-        # grid_helper = new THREE.GridHelper(20, 1)
-        # grid_helper.rotateX(Math.PI / 2)
-        # @scene.add grid_helper
+        axis_helper = new THREE.AxisHelper(50)
+        @scene.add( axis_helper )
+
+        grid_helper = new THREE.GridHelper(20, 1)
+        grid_helper.rotateX(Math.PI / 2)
+        @scene.add grid_helper
 
         # grid_helper_y = new THREE.GridHelper(20, 1)
         # @scene.add grid_helper_y
 
-        geometry = new THREE.BoxGeometry( 10, 10, 10, 2, 2, 2 );
-        object = new THREE.Mesh( geometry );
+        # geometry = new THREE.BoxGeometry( 10, 10, 10, 2, 2, 2 );
+        # object = new THREE.Mesh( geometry );
 
         # edges = new THREE.EdgesHelper( object, 0x00ff00 );
         # @scene.add( edges );
@@ -128,6 +127,8 @@ class Main
         line.position.x -= line.children[my_prev_connector_idx].position.x
         line
 
+    SCALE_TEXT = 0.005
+
     addChain: (text) =>
         lineObjects = processChain(text)
             .map @getLineObject
@@ -147,8 +148,12 @@ class Main
                 (t) -> this.children.forEach (mesh) ->
                     mesh.material.uniforms.opacity.value = i(t)
 
+    RADIUS = 1
+    addNode: (node) =>
+        console.log(node)
+
     addNetwork: (network) =>
-        console.log(network)
+        @addNode network[0]
 
     animate: =>
         requestAnimationFrame @animate

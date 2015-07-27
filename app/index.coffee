@@ -20,7 +20,7 @@ do ->
     .then ->
         switch window.location.hash
             when "", "#chain" then do chainMode
-            when "#collocation" then do collocationMode
+            when "#colocation" then do colocationMode
 
     chainMode = ->
         console.info "Starting Chain Mode."
@@ -37,13 +37,12 @@ do ->
             #         line.line = line.line.replace("--", "—")
             vis.addChain d[0]
 
-    collocationMode = ->
-        console.info "Starting Collocation Mode."
+    colocationMode = ->
+        console.info "Starting Colocation Mode."
 
         network_loaded = new Promise (resolve) ->
-            console.log "Requesting collocation network..."
-            url = "#{window.location.origin}/api/get-collocation.json"
-            console.log(url)
+            console.log "Requesting colocation network..."
+            url = "#{window.location.origin}/api/get-colocation.json"
             d3.json(url, resolve)
 
         network_loaded.then (d) ->

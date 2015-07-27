@@ -14,16 +14,10 @@ runScript = (scriptPath) ->
             resolve(json)
         )
 
-poetryChain = ->
-    runScript("./run_poetry_chain.sh")
-
-collocationNet = ->
-    runScript("./run_collocation_net.sh")
-
 module.exports = ->
     {
         poetryChain: -> runScript("./run_poetry_chain.sh")
-        collocationNet: -> runScript("./run_collocation_net.sh")
+        colocationNet: -> runScript("./run_colocation_net.sh")
     }
 
 # module.exports = () -> "HELLO"
