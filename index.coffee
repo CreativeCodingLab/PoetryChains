@@ -13,8 +13,12 @@ app = express()
 app.use require("cors")()
 
 app.get("/api/get-chain.json", (request, response) ->
+    poetryFunctions().poetryChain().then (data) ->
+        response.json(data)
+)
+
+app.get("/api/get-collocation.json", (request, response) ->
     poetryFunctions().collocationNet().then (data) ->
-        # console.log(data)
         response.json(data)
 )
 
