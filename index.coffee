@@ -19,7 +19,7 @@ app.get("/api/get-chain.json", (request, response) ->
 
 app.get("/api/get-collocation.json", (request, response) ->
     poetryFunctions().collocationNet().then (data) ->
-        console.log(data)
+        # console.log(data)
         response.json(data)
 )
 

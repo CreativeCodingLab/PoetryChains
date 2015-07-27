@@ -8,7 +8,7 @@ runScript = (scriptPath) ->
 
     new Promise (resolve, reject) ->
         childProcess.exec(command, (error, stdout, stderr) ->
-            console.log(error, stdout, stderr)
+            # console.log(error, stdout, stderr)
             reject(error) if (error)
             json = JSON.parse(stdout)
             resolve(json)
