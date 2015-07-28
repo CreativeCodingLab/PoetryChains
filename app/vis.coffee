@@ -7,7 +7,10 @@ assert = require "assert"
 
 class Main
     SCALE_TEXT = 0.005
-    RADIUS = 400
+    RADIUS = 700
+    CAMERA_Z = -7
+    CAMERA_PAN_DURATION = 2000
+    FADE_DURATION = 3000
 
     constructor: ->
         console.log "Starting Vis"
@@ -15,24 +18,24 @@ class Main
         @renderer = new THREE.WebGLRenderer()
         @renderer.setPixelRatio( window.devicePixelRatio )
         @renderer.setSize( window.innerWidth, window.innerHeight )
-        @renderer.setClearColor( "#eeeeee" )
+        @renderer.setClearColor( "rgb(255, 255, 255)" )
 
-        app = createOrbitViewer({
-            clearColor: 'rgb(255, 255, 255)',
-            clearAlpha: 1.0,
-            fov: 55,
-            position: new THREE.Vector3(0, -4, -5)
-        })
-        @renderer = app.renderer
+        # app = createOrbitViewer({
+        #     clearColor: 'rgb(255, 255, 255)',
+        #     clearAlpha: 1.0,
+        #     fov: 55,
+        #     position: new THREE.Vector3(0, -4, -5)
+        # })
+        # @renderer = app.renderer
+        # @scene = app.scene
 
-        @scene = app.scene
-        # @scene = new THREE.Scene()
+        @scene = new THREE.Scene()
 
         document.body.appendChild( @renderer.domElement )
 
         @camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 )
-        _x = 0
-        _y = 0
+        _x = 1
+        _y = 2
         @camera.position.z = -10
         @camera.position.x = _x
         @camera.position.y = _y
@@ -42,12 +45,12 @@ class Main
         light.position.set( 200, 100, 150 )
         @scene.add( light )
 
-        axis_helper = new THREE.AxisHelper(50)
-        @scene.add( axis_helper )
-
-        grid_helper = new THREE.GridHelper(20, 1)
-        grid_helper.rotateX(Math.PI / 2)
-        @scene.add grid_helper
+        # axis_helper = new THREE.AxisHelper(50)
+        # @scene.add( axis_helper )
+        #
+        # grid_helper = new THREE.GridHelper(20, 1)
+        # grid_helper.rotateX(Math.PI / 2)
+        # @scene.add grid_helper
 
         # grid_helper_y = new THREE.GridHelper(20, 1)
         # @scene.add grid_helper_y
@@ -121,6 +124,7 @@ class Main
         lineObject.add.apply(lineObject, letterObjects)
         lineObject.position.y = - (index || 0) * line_layout.height
         lineObject._line = _line
+        lineObject._layout = line_layout
         lineObject
 
     positionLines = (line, index, array) =>
@@ -209,8 +213,8 @@ class Main
                     RADIUS * Math.sin(radians) + node.position.y
                 )
                 if circle_node.position?
-                    check = pos.y.toFixed(5) is circle_node.position.y.toFixed(5)
-                    assert(check)
+                    check = pos.y.toFixed(3) is circle_node.position.y.toFixed(3)
+                    # assert(check)
                 else
                     circle_node.position = pos
 
@@ -220,6 +224,33 @@ class Main
         traverse(root)
         return root
 
+    panCameraTo: (object) =>
+        new Promise (resolve) =>
+            d3.transition().duration(CAMERA_PAN_DURATION)
+                .tween "moveCamera", =>
+                    current = @camera.position
+                    target = object.position
+                    x = d3.interpolate(current.x, target.x * SCALE_TEXT)
+                    y = d3.interpolate(current.y, target.y * SCALE_TEXT)
+                    (t) =>
+                        @camera.position.x = x(t)
+                        @camera.position.y = y(t)
+                        # @camera.lookAt new THREE.Vector3(_x,_y,0)
+                .each "end", resolve
+
+    # transitionOpacity: (interpolator) ->
+    #     (text_object) ->
+    #         d3.select(text_object).transition()
+
+    tempFadeOut = (text_object) ->
+        d3.select(text_object).transition()
+            .duration (FADE_DURATION)
+            .ease "poly", 5
+            .tween "fadeOpacity", ->
+                i = d3.interpolate(0.5,0)
+                (t) -> this.children.forEach (mesh) ->
+                    mesh.material.uniforms.opacity.value = i(t)
+
     addNetwork: (network) =>
         network_object = new THREE.Object3D()
         network_object.scale.multiplyScalar(SCALE_TEXT)
@@ -228,29 +259,41 @@ class Main
         root = makeTree network
         root = setPositions root
 
-        traverse = (node) =>
+        traverse = (node, count) =>
             return if ! node.position?
 
             text_object = @getLineObject(node.val)
             text_object.children.forEach (mesh) ->
                 mesh.material.uniforms.opacity.value = 0
             text_object.position.copy(node.position)
+            node._text_object = text_object
+            # text_object.position.x -= text_object._layout.width / 2
             network_object.add text_object
 
             d3.select(text_object).transition()
-                .duration (1000)
+                .duration (FADE_DURATION)
                 .ease "poly", 5
                 .tween "fadeOpacity", ->
                     i = d3.interpolate(0,0.5)
                     (t) -> this.children.forEach (mesh) ->
                         mesh.material.uniforms.opacity.value = i(t)
-                .each "end", ->
+                .each "end", =>
                     if node.children
-                        node.children.forEach traverse
-                    else
-                        network_object.remove (this)
+                        @panCameraTo(text_object)
+                            .then ->
+                                if node.parent?
+                                    siblings = node.parent.children.filter (child) ->
+                                        return child._text_object isnt text_object
+                                    if node.parent.parent
+                                        siblings = siblings.concat(node.parent.parent)
+                                    siblings.forEach (sibling) ->
+                                        tempFadeOut sibling._text_object
 
-        traverse(root)
+                                c = node.children.length
+                                node.children.forEach (child) ->
+                                    traverse(child, --c)
+
+        traverse(root, 0)
 
     animate: =>
         requestAnimationFrame @animate
