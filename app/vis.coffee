@@ -8,7 +8,7 @@ assert = require "assert"
 class Main
     SCALE_TEXT = 0.005
     RADIUS = 700
-    CAMERA_Z = -7
+    CAMERA_Z = -9
     CAMERA_PAN_DURATION = 2000
     FADE_DURATION = 3000
 
@@ -36,7 +36,7 @@ class Main
         @camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 )
         _x = 1
         _y = 2
-        @camera.position.z = -10
+        @camera.position.z = CAMERA_Z
         @camera.position.x = _x
         @camera.position.y = _y
         @camera.lookAt new THREE.Vector3(_x,_y,0)
@@ -122,7 +122,7 @@ class Main
 
         lineObject = new THREE.Object3D()
         lineObject.add.apply(lineObject, letterObjects)
-        lineObject.position.y = - (index || 0) * line_layout.height
+        lineObject.position.y = - (index || 0) * (line_layout.height + 20)
         lineObject._line = _line
         lineObject._layout = line_layout
         lineObject
@@ -152,6 +152,8 @@ class Main
         chainObject.scale.multiplyScalar(SCALE_TEXT)
         @scene.add(chainObject)
 
+        _pan = @panCameraTo
+
         d3.selectAll(lineObjects).transition()
             .duration (4000)
             .delay (_,i) -> i * 5000
@@ -160,6 +162,8 @@ class Main
                 i = d3.interpolate(0,0.5)
                 (t) -> this.children.forEach (mesh) ->
                     mesh.material.uniforms.opacity.value = i(t)
+            .each "end", ->
+                _pan(this)
 
     getRadians = (a, b) ->
         dx = a.position.x - b.position.x
