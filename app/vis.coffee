@@ -3,6 +3,7 @@ createGeometry = require('three-bmfont-text')
 Shader = require "./shaders/sdf"
 xtend = require 'xtend'
 createOrbitViewer = require('three-orbit-viewer')(THREE)
+assert = require "assert"
 
 class Main
     constructor: ->
@@ -155,60 +156,100 @@ class Main
                 (t) -> this.children.forEach (mesh) ->
                     mesh.material.uniforms.opacity.value = i(t)
 
-    processNetwork = (network) =>
-        network.map (node, index, array) ->
-            if index is 0
-                node.amt = 1
-                node.val = node.word
-                return node
-            node.previous = previous = array[index - 1]
-            prev_index = previous.colocations
-                .map (d) -> d.val
-                .indexOf node.word
-            node.amt = previous.colocations[prev_index].amt
-            node.colocations.unshift
-                amt: previous.amt || 1
-                val: previous.word
-            node
-        .map (node, index) ->
-            if index > 0
-                prev_index = node.previous.colocations
-                    .map (d) -> d.val
-                    .indexOf node.word
-                console.log node.previous.colocations[prev_index]
-            domain = d3.range node.colocations.length + 1
-            scale = d3.scale.ordinal()
-                .domain domain
-                .rangePoints [0, 2 * Math.PI]
-            node.colocations.forEach (obj, index) ->
-                obj.radians = scale(index)
-                # console.log(Math.sin(obj.radians), Math.cos(obj.radians))
-            node
+    getRadians = (a, b) ->
+        dx = a.position.x - b.position.x
+        dy = a.position.y - b.position.y
+        Math.atan2(dy, dx)
 
-    RADIUS = 500
+    RADIUS = 400
+
+    makeTree = (network) =>
+        network = network.map (d) ->
+            val: d.word
+            children: d.colocations
+
+        _makeTree = (child, parent, index, array) ->
+            child.parent = parent
+
+            # Find the index of this child in the parent's children array
+            child_index = parent.children
+                .map (d) -> d.val
+                .indexOf child.val
+
+            # Set the child's "amount" to match the parent's child object
+            parents_child = parent.children[child_index]
+            child.amt = parents_child.amt
+
+            # Set the parent's reference to match the child object
+            parent.children[child_index] = child
+
+            return parent
+
+        network.reduceRight(_makeTree)
+
+    setPositions = (root) =>
+        root.position = new THREE.Vector3()
+
+        radianScale = d3.scale.ordinal()
+            .rangePoints [0, 2 * Math.PI]
+
+        traverse = (node) ->
+            return if ! node.children?
+            offset = if node.parent? then getRadians(node.parent, node) else 0
+
+            circle_nodes = if node.parent?
+                [node.parent].concat(node.children)
+            else node.children
+
+            radianScale.domain d3.range(circle_nodes.length + 1)
+
+            circle_nodes.forEach (circle_node, index) ->
+                radians = radianScale(index) + offset
+                pos = new THREE.Vector3(
+                    RADIUS * Math.cos(radians) + node.position.x,
+                    RADIUS * Math.sin(radians) + node.position.y
+                )
+                if circle_node.position?
+                    check = pos.y.toFixed(5) is circle_node.position.y.toFixed(5)
+                    assert(check)
+                else
+                    circle_node.position = pos
+
+            if node.children?
+                node.children.forEach traverse
+
+        traverse(root)
+        return root
+
     addNetwork: (network) =>
         network_object = new THREE.Object3D()
-
-        network = processNetwork network
-
-        center = @getLineObject(network[0].word)
-        center.children.forEach (mesh) ->
-            mesh.material.uniforms.opacity.value = 1
-        network_object.add center
-
-        colocation_nodes = network[0].colocations.map (obj) =>
-            line_object = @getLineObject obj.val
-            line_object.children.forEach (mesh) ->
-                mesh.material.uniforms.opacity.value = 1
-            line_object.position.x = Math.cos(obj.radians) * RADIUS
-            line_object.position.y = Math.sin(obj.radians) * RADIUS
-            line_object
-
-        network_object.add.apply network_object, colocation_nodes
-
         network_object.scale.multiplyScalar(SCALE_TEXT)
-
         @scene.add network_object
+
+        root = makeTree network
+        root = setPositions root
+
+        traverse = (node) =>
+            return if ! node.position?
+            text_object = @getLineObject(node.val)
+            text_object.children.forEach (mesh) ->
+                mesh.material.uniforms.opacity.value = 0
+            text_object.position.x = node.position.x
+            text_object.position.y = node.position.y
+            network_object.add text_object
+
+            d3.select(text_object).transition()
+                .duration (1000)
+                .ease "poly", 5
+                .tween "fadeOpacity", ->
+                    i = d3.interpolate(0,0.5)
+                    (t) -> this.children.forEach (mesh) ->
+                        mesh.material.uniforms.opacity.value = i(t)
+                .each "end", ->
+                    if node.children
+                        node.children.forEach traverse
+
+        traverse(root)
 
     animate: =>
         requestAnimationFrame @animate
