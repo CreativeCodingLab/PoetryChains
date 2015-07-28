@@ -231,11 +231,11 @@ class Main
 
         traverse = (node) =>
             return if ! node.position?
+
             text_object = @getLineObject(node.val)
             text_object.children.forEach (mesh) ->
                 mesh.material.uniforms.opacity.value = 0
-            text_object.position.x = node.position.x
-            text_object.position.y = node.position.y
+            text_object.position.copy(node.position)
             network_object.add text_object
 
             d3.select(text_object).transition()
@@ -248,6 +248,8 @@ class Main
                 .each "end", ->
                     if node.children
                         node.children.forEach traverse
+                    else
+                        network_object.remove (this)
 
         traverse(root)
 
