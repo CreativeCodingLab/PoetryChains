@@ -6,6 +6,9 @@ createOrbitViewer = require('three-orbit-viewer')(THREE)
 assert = require "assert"
 
 class Main
+    SCALE_TEXT = 0.005
+    RADIUS = 400
+
     constructor: ->
         console.log "Starting Vis"
 
@@ -132,8 +135,6 @@ class Main
         line.position.x -= line.children[my_prev_connector_idx].position.x
         line
 
-    SCALE_TEXT = 0.005
-
     addChain: (text) =>
         lineObjects = processChain(text)
             .map (line, index) =>
@@ -160,8 +161,6 @@ class Main
         dx = a.position.x - b.position.x
         dy = a.position.y - b.position.y
         Math.atan2(dy, dx)
-
-    RADIUS = 400
 
     makeTree = (network) =>
         network = network.map (d) ->

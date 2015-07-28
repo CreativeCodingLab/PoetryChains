@@ -19,7 +19,6 @@ app.get("/api/get-chain.json", (request, response) ->
 
 app.get("/api/get-colocation.json", (request, response) ->
     poetryFunctions().colocationNet().then (data) ->
-        # console.log(data)
         response.json(data)
 )
 
