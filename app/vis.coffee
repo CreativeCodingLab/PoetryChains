@@ -17,16 +17,16 @@ class Main
         @renderer.setSize( window.innerWidth, window.innerHeight )
         @renderer.setClearColor( "#eeeeee" )
 
-        # app = createOrbitViewer({
-        #     clearColor: 'rgb(255, 255, 255)',
-        #     clearAlpha: 1.0,
-        #     fov: 55,
-        #     position: new THREE.Vector3(0, -4, -5)
-        # })
-        # @renderer = app.renderer
+        app = createOrbitViewer({
+            clearColor: 'rgb(255, 255, 255)',
+            clearAlpha: 1.0,
+            fov: 55,
+            position: new THREE.Vector3(0, -4, -5)
+        })
+        @renderer = app.renderer
 
-        @scene = new THREE.Scene()
-        # @scene = app.scene
+        @scene = app.scene
+        # @scene = new THREE.Scene()
 
         document.body.appendChild( @renderer.domElement )
 
@@ -77,7 +77,7 @@ class Main
     getTextMesh: (geometry) ->
         material = new THREE.ShaderMaterial(Shader({
             map: @texture,
-            smooth: 1/64,
+            smooth: 1/8, # Note: This is related to camera distance... Somehow
             side: THREE.DoubleSide,
             transparent: true,
             opacity: 0,
