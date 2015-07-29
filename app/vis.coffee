@@ -173,7 +173,7 @@ class Main
 
         network.reduceRight(_makeTree)
 
-    setPositions = (root) =>
+    setNetworkPositions = (root) =>
         root.position = new THREE.Vector3()
 
         radianScale = d3.scale.ordinal()
@@ -255,7 +255,7 @@ class Main
         @scene.add network_object
 
         root = makeTree network
-        root = setPositions root
+        root = setNetworkPositions root
 
         traverse = (node) =>
             return if ! node.position?
@@ -283,9 +283,24 @@ class Main
 
         traverse(root)
 
+    linesToTree = (lines) ->
+        lines = lines.map (line) ->
+            line: line.line
+            word: line.word
+            children: line.lines.map (_) -> line: _
+
+        reducer = (prev, current, index, array) ->
+            prev_index = current.children
+                .map (_) -> _.line
+                .indexOf(prev.line)
+            current.children[prev_index] = prev
+            current
+
+        lines.reduceRight reducer
+
     addLines: (lines) =>
-        console.log "from vis"
-        console.log lines
+        root = linesToTree lines
+        console.log root
 
     animate: =>
         requestAnimationFrame @animate
