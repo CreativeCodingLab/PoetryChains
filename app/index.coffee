@@ -25,6 +25,22 @@ do ->
         switch window.location.hash
             when "", "#chain" then do chainMode
             when "#colocation" then do colocationMode
+            when "#lines" then do linesMode
+
+    apiUrl = (call) ->
+        "#{window.location.origin}/api/#{call}"
+
+    getJson = (apiCall, message) ->
+        new Promise (resolve) ->
+            console.info message
+            url = apiUrl apiCall
+            d3.json url, resolve
+
+    linesMode = ->
+        console.info "Starting Lines Mode."
+
+        getJson "get-lines.json", "Requesting Lines..."
+            .then vis.addLines
 
     chainMode = ->
         console.info "Starting Chain Mode."

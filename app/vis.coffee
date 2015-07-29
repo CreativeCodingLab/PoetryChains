@@ -262,7 +262,6 @@ class Main
 
             node = @setTextObject(node)
             text_object = node._text_object
-
             network_object.add text_object
 
             faded_in = fadeIn(text_object)
@@ -283,6 +282,10 @@ class Main
                     node.children.forEach traverse
 
         traverse(root)
+
+    addLines: (lines) =>
+        console.log "from vis"
+        console.log lines
 
     animate: =>
         requestAnimationFrame @animate
