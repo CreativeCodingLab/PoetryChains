@@ -99,9 +99,9 @@ public class LineMaker {
         word = LineMaker.randomElements(line.words, 1).get(0);
 
         //3. grab every other line that contains that word
-        uniquelist = new HashSet<Line>(word.lines);
+        uniquelist = new HashSet<Line>(word.lines); //a word appear more than once in a line!
 
-        if (uniquelist.size() > 1) {
+        if (uniquelist.size() > 1) { //make sure that this is not the only time the word appears in the entire corpus!
 
           if (OUTPUT_JSON) {
             System.out.print("\t\t\"word\":\"" + word + "\",\n");
