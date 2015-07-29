@@ -9,7 +9,7 @@ runScript = (scriptPath) ->
     new Promise (resolve, reject) ->
         childProcess.exec(command, (error, stdout, stderr) ->
             reject(error) if (error)
-            console.log(stdout)
+            # console.log(stdout)
             json = JSON.parse(stdout)
             resolve(json)
         )
@@ -20,5 +20,3 @@ module.exports = ->
         colocationNet: -> runScript("./run_colocation_net.sh")
         lineMaker: -> runScript("./run_lines.sh")
     }
-
-# module.exports = () -> "HELLO"

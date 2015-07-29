@@ -234,26 +234,33 @@ class Main
                 .tween "moveCamera", =>
                     current = @camera.position
                     target = object.position
+                    # FIXME: This text scaling is ugly
                     x = d3.interpolate(current.x, target.x * SCALE_TEXT)
                     y = d3.interpolate(current.y, target.y * SCALE_TEXT)
                     (t) =>
                         @camera.position.x = x(t)
                         @camera.position.y = y(t)
-                        # @camera.lookAt new THREE.Vector3(_x,_y,0)
                 .each "end", resolve
 
-    # transitionOpacity: (interpolator) ->
-    #     (text_object) ->
-    #         d3.select(text_object).transition()
+    getTransitionPromise = (interpolator) ->
+        (text_object) ->
+            new Promise (resolve) ->
+                d3.select(text_object).transition()
+                    .duration FADE_DURATION
+                    .ease "poly", 5
+                    .tween "fadeOpacity", ->
+                        i = interpolator
+                        (t) -> this.children.forEach (mesh) ->
+                            mesh.material.uniforms.opacity.value = i(t)
+                    .each "end", resolve
 
-    tempFadeOut = (text_object) ->
-        d3.select(text_object).transition()
-            .duration (FADE_DURATION)
-            .ease "poly", 5
-            .tween "fadeOpacity", ->
-                i = d3.interpolate(0.5,0)
-                (t) -> this.children.forEach (mesh) ->
-                    mesh.material.uniforms.opacity.value = i(t)
+    fadeOut = (text_object) ->
+        i = d3.interpolate(0.5, 0)
+        getTransitionPromise(i)(text_object)
+
+    fadeIn = (text_object) ->
+        i = d3.interpolate(0, 0.5)
+        getTransitionPromise(i)(text_object)
 
     addNetwork: (network) =>
         network_object = new THREE.Object3D()
@@ -263,7 +270,7 @@ class Main
         root = makeTree network
         root = setPositions root
 
-        traverse = (node, count) =>
+        traverse = (node) =>
             return if ! node.position?
 
             text_object = @getLineObject(node.val)
@@ -271,33 +278,27 @@ class Main
                 mesh.material.uniforms.opacity.value = 0
             text_object.position.copy(node.position)
             node._text_object = text_object
-            # text_object.position.x -= text_object._layout.width / 2
+
             network_object.add text_object
 
-            d3.select(text_object).transition()
-                .duration (FADE_DURATION)
-                .ease "poly", 5
-                .tween "fadeOpacity", ->
-                    i = d3.interpolate(0,0.5)
-                    (t) -> this.children.forEach (mesh) ->
-                        mesh.material.uniforms.opacity.value = i(t)
-                .each "end", =>
-                    if node.children
-                        @panCameraTo(text_object)
-                            .then ->
-                                if node.parent?
-                                    siblings = node.parent.children.filter (child) ->
-                                        return child._text_object isnt text_object
-                                    if node.parent.parent
-                                        siblings = siblings.concat(node.parent.parent)
-                                    siblings.forEach (sibling) ->
-                                        tempFadeOut sibling._text_object
+            faded_in = fadeIn(text_object)
 
-                                c = node.children.length
-                                node.children.forEach (child) ->
-                                    traverse(child, --c)
+            if node.children
+                faded_in.then =>
+                    @panCameraTo(text_object)
+                .then ->
+                    if node.parent?
+                        siblings = node.parent.children.filter (child) ->
+                            return child._text_object isnt text_object
+                        if node.parent.parent
+                            siblings = siblings.concat(node.parent.parent)
+                        promises = siblings.map (sibling) ->
+                            fadeOut sibling._text_object
+                        return Promise.all promises
+                .then ->
+                    node.children.forEach traverse
 
-        traverse(root, 0)
+        traverse(root)
 
     animate: =>
         requestAnimationFrame @animate
