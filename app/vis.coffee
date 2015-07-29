@@ -207,6 +207,30 @@ class Main
         traverse(root)
         return root
 
+    panCameraToPosition: (target, duration) =>
+        new Promise (resolve) =>
+            d3.transition()
+                .duration duration
+                .tween "moveCamera", =>
+                    current = @camera.position
+                    x = d3.interpolate(current.x, target.x)
+                    y = d3.interpolate(current.y, target.y)
+                    (t) =>
+                        @camera.position.x = x(t)
+                        @camera.position.y = y(t)
+                .each "end", resolve
+
+    zoomCameraToPosition: (target, duration) =>
+        new Promise (resolve) =>
+            d3.transition()
+                .duration duration
+                .tween "zoomCamera", =>
+                    current = @camera.position
+                    z = d3.interpolate current.z, target.z
+                    (t) =>
+                        @camera.position.z = z(t)
+                .each "end", resolve
+
     panCameraTo: (object) =>
         new Promise (resolve) =>
             d3.transition().duration(CAMERA_PAN_DURATION)
@@ -298,9 +322,48 @@ class Main
 
         lines.reduceRight reducer
 
+    _radianScale = d3.scale.linear()
+        .domain([0, 360])
+        .range([0, Math.PI * 2])
+
+    zoomToBoundingBox: (box, duration) ->
+        width = Math.abs(box.min.x - box.max.x)
+
+        buffer = 0.3
+
+        v_fov = _radianScale @camera.fov
+
+        # See: github.com/mrdoob/three.js/issues/1239
+        h_fov = Math.atan( Math.tan(v_fov/2) * @camera.aspect )
+
+        # See: stackoverflow.com/questions/2866350/move-camera-to-fit-3d-scene
+        distance = (width / 2) / Math.tan(h_fov) + buffer
+
+        target = new THREE.Vector3(0, 0, - distance)
+
+        @zoomCameraToPosition target, duration
+
     addLines: (lines) =>
+        lines_object = new THREE.Object3D()
+        lines_object.scale.multiplyScalar(SCALE_TEXT)
+        lines_object.updateMatrixWorld(true)
+        @scene.add lines_object
+
         root = linesToTree lines
-        console.log root
+
+        root._text_object ?= @getLineObject(root.line)
+        root._text_object.children.forEach (mesh) ->
+            mesh.material.uniforms.opacity.value = 1
+        lines_object.add root._text_object
+
+        bbox = new THREE.BoundingBoxHelper( root._text_object, 0xff0000 )
+        do bbox.update
+
+        @scene.add bbox
+
+        @panCameraToPosition bbox.box.center(), 1000
+            .then => @zoomToBoundingBox(bbox.box, 1000)
+
 
     animate: =>
         requestAnimationFrame @animate

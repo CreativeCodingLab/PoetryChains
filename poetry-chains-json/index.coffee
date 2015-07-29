@@ -2,6 +2,9 @@ childProcess = require('child_process')
 path = require("path")
 Promise = require("promise")
 
+replaceEmDash = (text) ->
+    text.replace(/--/g, "—")
+
 runScript = (scriptPath) ->
     java_directory = path.resolve(__dirname, "PoetryChains")
     command = "cd #{java_directory}; #{scriptPath}"
@@ -9,9 +12,9 @@ runScript = (scriptPath) ->
     new Promise (resolve, reject) ->
         childProcess.exec(command, (error, stdout, stderr) ->
             reject(error) if (error)
-            # console.log(stdout)
+            stdout = replaceEmDash stdout
             json = JSON.parse(stdout)
-            resolve(json)
+            resolve json
         )
 
 module.exports = ->

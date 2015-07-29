@@ -45,11 +45,6 @@ do ->
         console.info "Starting Chain Mode."
         getJson "get-chain.json", "Requesting poetry chain..."
             .then (d) ->
-                d.forEach (chain) ->
-                    chain.forEach (line) ->
-                        line.line = line.line.replace("--", "—")
-                        line.line = line.line.replace("––", "—")
-                        line.line = line.line.replace("——", "—")
                 vis.addChain d[0]
 
     colocationMode = ->
