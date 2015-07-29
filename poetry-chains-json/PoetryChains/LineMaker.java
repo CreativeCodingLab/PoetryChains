@@ -8,9 +8,9 @@ import java.util.*;
 public class LineMaker {
 
   static boolean OUTPUT_JSON = true;
-  static int MAX_LINES = 50; //max collocated lines per iteration
-  static int NUM_LINES = 30; //num iterations
- 
+  static int MAX_LINES = 10; //max collocated lines per iteration
+  static int NUM_LINES = 5; //num iterations
+
   public Word lastSelected = null;
 
   public static void main(String[] args)
@@ -40,13 +40,13 @@ public class LineMaker {
 
     //or, B
     //Word word = Utils.randomElement(Parser.rankedWords, 10000, 18000); //get a low frequency word
-    //makeNets(word, 10); 
-    
+    //makeNets(word, 10);
+
     makeLines();
   }
 
 
-  
+
 
 	public static <T> List<T> randomElements(Collection<T> collection, int howMany) {
 		if (collection.size() < howMany) {
@@ -86,7 +86,8 @@ public class LineMaker {
       line = LineMaker.randomElements(lines, 1).get(0);
 
       if (OUTPUT_JSON) {
-        System.out.print("\t{\n\t\t\"line\":\"" + line.text + "\",\n");
+        //   System.out.print("bahhhh");
+        System.out.print("\t{\n\t\t\"line\":\"" + line.text.replaceAll("\"", "\\\\\"") + "\",\n");
       } else {
         System.out.println("line = " + line.text);
       }
@@ -118,14 +119,14 @@ public class LineMaker {
 
       if (OUTPUT_JSON) {
         System.out.print("\t\t\"lines\":[\n");
-      } 
+      }
 
       for (int j = 0; j < lines.size(); j++) {
 
         Line l = lines.get(j);
 
         if (OUTPUT_JSON) {
-          System.out.print("\t\t\t\"" + l.text + "\"");
+          System.out.print("\t\t\t\"" + l.text.replaceAll("\"", "\\\\\"") + "\"");
           if (j < lines.size() - 1) {
             System.out.print(",\n");
           } else {

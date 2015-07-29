@@ -8,8 +8,8 @@ runScript = (scriptPath) ->
 
     new Promise (resolve, reject) ->
         childProcess.exec(command, (error, stdout, stderr) ->
-            # console.log(error, stdout, stderr)
             reject(error) if (error)
+            console.log(stdout)
             json = JSON.parse(stdout)
             resolve(json)
         )
@@ -18,6 +18,7 @@ module.exports = ->
     {
         poetryChain: -> runScript("./run_poetry_chain.sh")
         colocationNet: -> runScript("./run_colocation_net.sh")
+        lineMaker: -> runScript("./run_lines.sh")
     }
 
 # module.exports = () -> "HELLO"
