@@ -38,32 +38,21 @@ do ->
 
     linesMode = ->
         console.info "Starting Lines Mode."
-
         getJson "get-lines.json", "Requesting Lines..."
             .then vis.addLines
 
     chainMode = ->
         console.info "Starting Chain Mode."
-
-        poetry_chain_loaded = new Promise (resolve) ->
-            console.log "Requesting poetry chain..."
-            url = "#{window.location.origin}/api/get-chain.json"
-            d3.json(url, resolve)
-
-        poetry_chain_loaded.then (d) ->
-            # TODO: Get font with em-dash
-            # d.forEach (chain) ->
-            #     chain.forEach (line) ->
-            #         line.line = line.line.replace("--", "—")
-            vis.addChain d[0]
+        getJson "get-chain.json", "Requesting poetry chain..."
+            .then (d) ->
+                d.forEach (chain) ->
+                    chain.forEach (line) ->
+                        line.line = line.line.replace("--", "—")
+                        line.line = line.line.replace("––", "—")
+                        line.line = line.line.replace("——", "—")
+                vis.addChain d[0]
 
     colocationMode = ->
         console.info "Starting Colocation Mode."
-
-        network_loaded = new Promise (resolve) ->
-            console.log "Requesting colocation network..."
-            url = "#{window.location.origin}/api/get-colocation.json"
-            d3.json(url, resolve)
-
-        network_loaded.then (d) ->
-            vis.addNetwork d
+        getJson "get-colocation.json", "Requesting colocation network..."
+            .then vis.addNetwork
