@@ -9,8 +9,12 @@ class Main
     SCALE_TEXT = 0.005
     RADIUS = 700
     CAMERA_Z = -9
-    CAMERA_PAN_DURATION = 2000
-    FADE_DURATION = 3000
+
+    SPEED_MULTIPLIER = 0.5
+
+    CAMERA_PAN_DURATION = 2000 * SPEED_MULTIPLIER
+    FADE_DURATION = 3000 * SPEED_MULTIPLIER
+    CHAIN_FADE_DELAY = 5000 * SPEED_MULTIPLIER
 
     constructor: ->
         console.log "Starting Vis"
@@ -19,15 +23,6 @@ class Main
         @renderer.setPixelRatio( window.devicePixelRatio )
         @renderer.setSize( window.innerWidth, window.innerHeight )
         @renderer.setClearColor( "rgb(255, 255, 255)" )
-
-        # app = createOrbitViewer({
-        #     clearColor: 'rgb(255, 255, 255)',
-        #     clearAlpha: 1.0,
-        #     fov: 55,
-        #     position: new THREE.Vector3(0, -4, -5)
-        # })
-        # @renderer = app.renderer
-        # @scene = app.scene
 
         @scene = new THREE.Scene()
 
@@ -44,22 +39,6 @@ class Main
         light = new THREE.PointLight()
         light.position.set( 200, 100, 150 )
         @scene.add( light )
-
-        # axis_helper = new THREE.AxisHelper(50)
-        # @scene.add( axis_helper )
-        #
-        # grid_helper = new THREE.GridHelper(20, 1)
-        # grid_helper.rotateX(Math.PI / 2)
-        # @scene.add grid_helper
-
-        # grid_helper_y = new THREE.GridHelper(20, 1)
-        # @scene.add grid_helper_y
-
-        # geometry = new THREE.BoxGeometry( 10, 10, 10, 2, 2, 2 );
-        # object = new THREE.Mesh( geometry );
-
-        # edges = new THREE.EdgesHelper( object, 0x00ff00 );
-        # @scene.add( edges );
 
     setTexture: (@texture) ->
         maxAni = @renderer.getMaxAnisotropy()
@@ -103,8 +82,8 @@ class Main
             obj
 
     getMeshFromString: (string) =>
-        string_geom = @getTextGeometry(string)
-        string_mesh = @getTextMesh(string_geom)
+        string_geom = @getTextGeometry string
+        string_mesh = @getTextMesh string_geom
         string_mesh.scale.multiplyScalar(-1)
         string_mesh
 
@@ -126,8 +105,6 @@ class Main
         lineObject._line = _line
         lineObject._layout = line_layout
         lineObject
-
-    # getLineObject = @getLineObject
 
     positionLines = (line, index, array) =>
         return line if index is 0
@@ -157,8 +134,8 @@ class Main
         _pan = @panCameraTo
 
         d3.selectAll(lineObjects).transition()
-            .duration (4000)
-            .delay (_,i) -> i * 5000
+            .duration FADE_DURATION
+            .delay (_,i) -> i * CHAIN_FADE_DELAY
             .ease "poly", 5
             .tween "fadeOpacity", ->
                 i = d3.interpolate(0,0.5)
@@ -312,6 +289,31 @@ class Main
         @renderer.render( @scene, @camera )
 
 module.exports = Main
+
+# app = createOrbitViewer({
+#     clearColor: 'rgb(255, 255, 255)',
+#     clearAlpha: 1.0,
+#     fov: 55,
+#     position: new THREE.Vector3(0, -4, -5)
+# })
+# @renderer = app.renderer
+# @scene = app.scene
+
+# axis_helper = new THREE.AxisHelper(50)
+# @scene.add( axis_helper )
+#
+# grid_helper = new THREE.GridHelper(20, 1)
+# grid_helper.rotateX(Math.PI / 2)
+# @scene.add grid_helper
+
+# grid_helper_y = new THREE.GridHelper(20, 1)
+# @scene.add grid_helper_y
+
+# geometry = new THREE.BoxGeometry( 10, 10, 10, 2, 2, 2 );
+# object = new THREE.Mesh( geometry );
+
+# edges = new THREE.EdgesHelper( object, 0x00ff00 );
+# @scene.add( edges );
 
 # d3.transition().duration(0)
 #     .transition().duration(1e3)
