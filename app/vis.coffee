@@ -127,6 +127,8 @@ class Main
         lineObject._layout = line_layout
         lineObject
 
+    # getLineObject = @getLineObject
+
     positionLines = (line, index, array) =>
         return line if index is 0
 
@@ -217,7 +219,7 @@ class Main
                     RADIUS * Math.sin(radians) + node.position.y
                 )
                 if circle_node.position?
-                    check = pos.y.toFixed(3) is circle_node.position.y.toFixed(3)
+                    # check = pos.y.toFixed(3) is circle_node.position.y.toFixed(3)
                     # assert(check)
                 else
                     circle_node.position = pos
@@ -262,6 +264,14 @@ class Main
         i = d3.interpolate(0, 0.5)
         getTransitionPromise(i)(text_object)
 
+    setTextObject: (node) =>
+        text_object = @getLineObject(node.val)
+        text_object.children.forEach (mesh) ->
+            mesh.material.uniforms.opacity.value = 0
+        text_object.position.copy(node.position)
+        node._text_object = text_object
+        node
+
     addNetwork: (network) =>
         network_object = new THREE.Object3D()
         network_object.scale.multiplyScalar(SCALE_TEXT)
@@ -273,11 +283,8 @@ class Main
         traverse = (node) =>
             return if ! node.position?
 
-            text_object = @getLineObject(node.val)
-            text_object.children.forEach (mesh) ->
-                mesh.material.uniforms.opacity.value = 0
-            text_object.position.copy(node.position)
-            node._text_object = text_object
+            node = @setTextObject(node)
+            text_object = node._text_object
 
             network_object.add text_object
 
