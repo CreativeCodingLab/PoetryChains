@@ -77,6 +77,24 @@ module.exports = class Main
         string_mesh.scale.multiplyScalar(-1)
         string_mesh
 
+    getLineObject: (line) =>
+        line_geometry = @getTextGeometry line
+        line_layout = line_geometry.layout
+        glyph_positions = line_layout.glyphs.map (g) -> g.position
+
+        letterObjects = line.split("").map (letter, index) =>
+            letter_mesh = @getMeshFromString letter
+            letter_mesh.position.x = - glyph_positions[index][0]
+            letter_mesh
+
+        # TODO: Pack up words...
+
+        lineObject = new THREE.Object3D()
+        lineObject.add.apply lineObject, letterObjects
+        lineObject._line = line
+        lineObject._layout = line_layout
+        lineObject
+
     processChain = (chain) ->
         chain.map (obj, i, array) ->
             obj.connector_index = obj.line.indexOf obj.connector
@@ -89,24 +107,6 @@ module.exports = class Main
                 obj.my_prev_connector_index = my_prev_idx
                 obj.prev_connector_index = prev_idx
             obj
-
-    getLineObject: (_line, index) =>
-        line_geometry = @getTextGeometry _line
-        line_layout = line_geometry.layout
-        glyph_positions = line_layout.glyphs.map (g) -> g.position
-
-        letterObjects = _line.split("").map (letter, index) =>
-            letter_mesh = @getMeshFromString letter
-            letter_mesh.position.x = - glyph_positions[index][0]
-            letter_mesh
-
-        # TODO: Pack up words...
-
-        lineObject = new THREE.Object3D()
-        lineObject.add.apply(lineObject, letterObjects)
-        lineObject._line = _line
-        lineObject._layout = line_layout
-        lineObject
 
     positionLines = (line, index, array) =>
         return line if index is 0
@@ -450,15 +450,15 @@ module.exports = class Main
 
         traverse root
 
-        # addBBox = (node) =>
-        #     bbox = new THREE.BoundingBoxHelper( node._text_object, 0xff0000 )
-        #     do bbox.update
-        #     @scene.add bbox
-        #     if node.children
-        #         node.children.forEach addBBox
-        # addBBox root
-
         @animateLines root
+
+# addBBox = (node) =>
+#     bbox = new THREE.BoundingBoxHelper( node._text_object, 0xff0000 )
+#     do bbox.update
+#     @scene.add bbox
+#     if node.children
+#         node.children.forEach addBBox
+# addBBox root
 
 # module.exports = Main
 
