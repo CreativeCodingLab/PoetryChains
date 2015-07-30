@@ -459,7 +459,6 @@ class Test extends Main
 
     foo: ->
         console.log @camera.position
-        debugger
 
 # addBBox = (node) =>
 #     bbox = new THREE.BoundingBoxHelper( node._text_object, 0xff0000 )

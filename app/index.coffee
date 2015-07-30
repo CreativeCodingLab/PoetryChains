@@ -23,27 +23,27 @@ do ->
         interval = -> test.foo()
         setInterval interval, 1000
 
-    apiUrl = (call) ->
-        "#{window.location.origin}/api/#{call}"
+apiUrl = (call) ->
+    "#{window.location.origin}/api/#{call}"
 
-    getJson = (apiCall, message) ->
-        new Promise (resolve) ->
-            console.info message
-            url = apiUrl apiCall
-            d3.json url, resolve
+getJson = (apiCall, message) ->
+    new Promise (resolve) ->
+        console.info message
+        url = apiUrl apiCall
+        d3.json url, resolve
 
-    linesMode = ->
-        console.info "Starting Lines Mode."
-        getJson "get-lines.json", "Requesting Lines..."
-            .then vis.addLines
+linesMode = ->
+    console.info "Starting Lines Mode."
+    getJson "get-lines.json", "Requesting Lines..."
+        .then vis.addLines
 
-    chainMode = ->
-        console.info "Starting Chain Mode."
-        getJson "get-chain.json", "Requesting poetry chain..."
-            .then (d) ->
-                vis.addChain d[0]
+chainMode = ->
+    console.info "Starting Chain Mode."
+    getJson "get-chain.json", "Requesting poetry chain..."
+        .then (d) ->
+            vis.addChain d[0]
 
-    colocationMode = ->
-        console.info "Starting Colocation Mode."
-        getJson "get-colocation.json", "Requesting colocation network..."
-            .then vis.addNetwork
+colocationMode = ->
+    console.info "Starting Colocation Mode."
+    getJson "get-colocation.json", "Requesting colocation network..."
+        .then vis.addNetwork
