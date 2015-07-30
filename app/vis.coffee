@@ -28,7 +28,7 @@ class Main
 
         document.body.appendChild( @renderer.domElement )
 
-        @camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 )
+        @camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 1000 )
         _x = 1
         _y = 2
         @camera.position.z = CAMERA_Z
@@ -326,10 +326,10 @@ class Main
         .domain([0, 360])
         .range([0, Math.PI * 2])
 
-    zoomToBoundingBox: (box, duration) ->
+    zoomToBoundingBoxWidth: (box, duration) ->
         width = Math.abs(box.min.x - box.max.x)
 
-        buffer = 0.3
+        distance_scale = 1.2
 
         v_fov = _radianScale @camera.fov
 
@@ -337,11 +337,24 @@ class Main
         h_fov = Math.atan( Math.tan(v_fov/2) * @camera.aspect )
 
         # See: stackoverflow.com/questions/2866350/move-camera-to-fit-3d-scene
-        distance = (width / 2) / Math.tan(h_fov) + buffer
+        distance = (width / 2) / Math.tan(h_fov) * distance_scale
 
         target = new THREE.Vector3(0, 0, - distance)
 
         @zoomCameraToPosition target, duration
+
+    LINE_SPACING = 40
+
+    alignToNode = (parent) ->
+        (child) ->
+            word = parent.word
+            regex = new RegExp word, "i"
+            offset = [ parent, child ]
+                .map (_) ->
+                    idx = _.line.search regex
+                    _._text_object.children[idx].position.x
+                .reduce (a, b) -> a - b
+            child._text_object.position.x += offset
 
     addLines: (lines) =>
         lines_object = new THREE.Object3D()
@@ -351,18 +364,50 @@ class Main
 
         root = linesToTree lines
 
-        root._text_object ?= @getLineObject(root.line)
-        root._text_object.children.forEach (mesh) ->
-            mesh.material.uniforms.opacity.value = 1
-        lines_object.add root._text_object
+        traverse = (parent) =>
+            parent._text_object ?= @getLineObject(parent.line)
+            parent._text_object.children.forEach (mesh) ->
+                mesh.material.uniforms.opacity.value = 1
+            lines_object.add parent._text_object
 
-        bbox = new THREE.BoundingBoxHelper( root._text_object, 0xff0000 )
-        do bbox.update
+            return if ! parent.children?
 
-        @scene.add bbox
+            parent.children.forEach (child) =>
+                child._text_object ?= @getLineObject(child.line)
+                child._text_object.children.forEach (mesh) ->
+                    mesh.material.uniforms.opacity.value = 1
+                lines_object.add child._text_object
 
-        @panCameraToPosition bbox.box.center(), 1000
-            .then => @zoomToBoundingBox(bbox.box, 1000)
+            positions_array = parent.children.concat parent
+            d3.shuffle positions_array
+            parent_index = positions_array.indexOf parent
+
+            positions_array.forEach (node, index) =>
+                obj = node._text_object
+                offset_from_parent = index - parent_index
+                height = obj._layout.height
+                obj.position.y = offset_from_parent * (height + LINE_SPACING)
+
+            parent.children.forEach alignToNode(parent)
+
+            # debugger
+
+            # debugger
+
+        traverse root
+
+        # root._text_object ?= @getLineObject(root.line)
+        # root._text_object.children.forEach (mesh) ->
+        #     mesh.material.uniforms.opacity.value = 1
+        # lines_object.add root._text_object
+        #
+        # bbox = new THREE.BoundingBoxHelper( root._text_object, 0xff0000 )
+        # do bbox.update
+        #
+        # @scene.add bbox
+        #
+        # @panCameraToPosition bbox.box.center(), 1000
+        #     .then => @zoomToBoundingBoxWidth(bbox.box, 1000)
 
 
     animate: =>
