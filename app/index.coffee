@@ -5,18 +5,10 @@ vis = new Vis()
 
 do ->
     font_loaded = new Promise (resolve) ->
-        # do vis.animate
-
-        require('./load')({
-            # font: 'fnt/DejaVu-sdf.fnt',
-            # image: 'fnt/DejaVu-sdf.png'
-            # font: "fnt/Lato-Regular-64.fnt",
-            # image: "fnt/lato.png"
-            # font: "fnt/test-font.fnt",
-            # image: "fnt/test-font.png"
+        require('./load')(
             font: "fnt/Palatino-Linotype.fnt",
             image: "fnt/Palatino-Linotype.png"
-        }, (font, texture) -> resolve({ font: font, texture: texture }))
+        , (font, texture) -> resolve({ font: font, texture: texture }))
 
     font_loaded.then (obj) ->
         vis.setTexture(obj.texture)
