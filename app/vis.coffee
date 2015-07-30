@@ -8,7 +8,6 @@ assert = require "assert"
 module.exports = class Main
     SCALE_TEXT = 0.005
     RADIUS = 700
-    CAMERA_Z = -9
 
     SPEED_MULTIPLIER = 0.5
 
@@ -33,8 +32,8 @@ module.exports = class Main
         [ near, far ] = [ 0.1, 1000 ]
         @camera = new THREE.PerspectiveCamera( fov, aspect, near, far )
 
-        [_x,_y] = [0,0]
-        @camera.position.z = CAMERA_Z
+        [_x, _y, _z] = [0, 0, -9]
+        @camera.position.z = _z
         @camera.position.x = _x
         @camera.position.y = _y
         @camera.lookAt new THREE.Vector3(_x,_y,0)
@@ -177,7 +176,7 @@ module.exports = class Main
 
         network.reduceRight(_makeTree)
 
-    setNetworkPositions = (root) =>
+    setNetworkPositions = (root, radius) =>
         root.position = new THREE.Vector3()
 
         radianScale = d3.scale.ordinal()
@@ -196,8 +195,8 @@ module.exports = class Main
             circle_nodes.forEach (circle_node, index) ->
                 radians = radianScale(index) + offset
                 pos = new THREE.Vector3(
-                    RADIUS * Math.cos(radians) + node.position.x,
-                    RADIUS * Math.sin(radians) + node.position.y
+                    radius * Math.cos(radians) + node.position.x,
+                    radius * Math.sin(radians) + node.position.y
                 )
                 if circle_node.position?
                     # check = pos.y.toFixed(3) is circle_node.position.y.toFixed(3)
@@ -298,8 +297,10 @@ module.exports = class Main
         network_object.scale.multiplyScalar(SCALE_TEXT)
         @scene.add network_object
 
+        radius = 500
+
         root = makeTree network
-        root = setNetworkPositions root
+        root = setNetworkPositions root, radius
 
         traverse = (node) =>
             return if ! node.position?
