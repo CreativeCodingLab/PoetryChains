@@ -24,9 +24,9 @@ class Main
         @renderer.setSize( window.innerWidth, window.innerHeight )
         @renderer.setClearColor( "rgb(255, 255, 255)" )
 
-        @scene = new THREE.Scene()
-
         document.body.appendChild( @renderer.domElement )
+
+        @scene = new THREE.Scene()
 
         fov = 70
         aspect = window.innerWidth / window.innerHeight
@@ -96,7 +96,7 @@ class Main
         glyph_positions = line_layout.glyphs.map (g) -> g.position
 
         letterObjects = _line.split("").map (letter, index) =>
-            letter_mesh = @getMeshFromString(letter)
+            letter_mesh = @getMeshFromString letter
             letter_mesh.position.x = - glyph_positions[index][0]
             letter_mesh
 
