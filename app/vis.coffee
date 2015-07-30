@@ -5,7 +5,7 @@ xtend = require 'xtend'
 createOrbitViewer = require('three-orbit-viewer')(THREE)
 assert = require "assert"
 
-class Main
+module.exports = class Main
     SCALE_TEXT = 0.005
     RADIUS = 700
     CAMERA_Z = -9
@@ -459,7 +459,7 @@ class Main
 
         @animateLines root
 
-module.exports = Main
+# module.exports = Main
 
 # bbox = new THREE.BoundingBoxHelper( root._text_object, 0xff0000 )
 # do bbox.update
