@@ -29,8 +29,7 @@ class Main
         document.body.appendChild( @renderer.domElement )
 
         @camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 1000 )
-        _x = 1
-        _y = 2
+        [ _x, _y ] = [0,0]
         @camera.position.z = CAMERA_Z
         @camera.position.x = _x
         @camera.position.y = _y
@@ -366,8 +365,8 @@ class Main
 
         traverse = (parent) =>
             parent._text_object ?= @getLineObject(parent.line)
-            parent._text_object.children.forEach (mesh) ->
-                mesh.material.uniforms.opacity.value = 1
+            # parent._text_object.children.forEach (mesh) ->
+            #     mesh.material.uniforms.opacity.value = 0.5
             lines_object.add parent._text_object
 
             return if ! parent.children?
@@ -375,24 +374,21 @@ class Main
             parent.children.forEach (child) =>
                 child._text_object ?= @getLineObject(child.line)
                 child._text_object.children.forEach (mesh) ->
-                    mesh.material.uniforms.opacity.value = 1
+                    mesh.material.uniforms.opacity.value = 0.5
                 lines_object.add child._text_object
 
-            positions_array = parent.children.concat parent
-            d3.shuffle positions_array
+            positions_array = d3.shuffle parent.children.concat parent
             parent_index = positions_array.indexOf parent
 
             positions_array.forEach (node, index) =>
-                obj = node._text_object
                 offset_from_parent = index - parent_index
+                obj = node._text_object
                 height = obj._layout.height
                 obj.position.y = offset_from_parent * (height + LINE_SPACING)
 
             parent.children.forEach alignToNode(parent)
 
-            # debugger
-
-            # debugger
+            parent.children.forEach traverse
 
         traverse root
 
