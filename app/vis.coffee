@@ -28,16 +28,16 @@ class Main
 
         document.body.appendChild( @renderer.domElement )
 
-        @camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 1000 )
-        [ _x, _y ] = [0,0]
+        fov = 70
+        aspect = window.innerWidth / window.innerHeight
+        [ near, far ] = [ 0.1, 1000 ]
+        @camera = new THREE.PerspectiveCamera( fov, aspect, near, far )
+
+        [_x,_y] = [0,0]
         @camera.position.z = CAMERA_Z
         @camera.position.x = _x
         @camera.position.y = _y
         @camera.lookAt new THREE.Vector3(_x,_y,0)
-
-        light = new THREE.PointLight()
-        light.position.set( 200, 100, 150 )
-        @scene.add( light )
 
     setTexture: (@texture) ->
         maxAni = @renderer.getMaxAnisotropy()
@@ -50,6 +50,10 @@ class Main
 
     setFont: (@font) ->
 
+    animate: =>
+        requestAnimationFrame @animate
+        @renderer.render( @scene, @camera )
+
     getTextGeometry: (text) =>
         createGeometry
             text: text
@@ -58,7 +62,7 @@ class Main
     getTextMesh: (geometry) ->
         material = new THREE.ShaderMaterial(Shader({
             map: @texture,
-            smooth: 1/8, # Note: This is related to camera distance... Somehow
+            smooth: 1/8,
             side: THREE.DoubleSide,
             transparent: true,
             opacity: 0,
@@ -454,10 +458,6 @@ class Main
         # addBBox root
 
         @animateLines root
-
-    animate: =>
-        requestAnimationFrame @animate
-        @renderer.render( @scene, @camera )
 
 module.exports = Main
 
