@@ -394,7 +394,6 @@ class Main
                 .then ->
                     # Fade in node
                     fadeTo(1, 1000) node._text_object
-                    # fade(0.2, 1, 1000) node._text_object
                 .then ->
                     # Fade out siblings
                     if node._parent?
