@@ -5,7 +5,7 @@ vis = new Vis()
 
 do ->
     font_loaded = new Promise (resolve) ->
-        do vis.animate
+        # do vis.animate
 
         require('./load')({
             # font: 'fnt/DejaVu-sdf.fnt',

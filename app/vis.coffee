@@ -39,6 +39,10 @@ module.exports = class Main
         @camera.position.y = _y
         @camera.lookAt new THREE.Vector3(_x,_y,0)
 
+        do animate = =>
+            requestAnimationFrame animate
+            @renderer.render @scene, @camera
+
     setTexture: (@texture) ->
         maxAni = @renderer.getMaxAnisotropy()
 
@@ -49,10 +53,6 @@ module.exports = class Main
         @texture.anisotropy = maxAni
 
     setFont: (@font) ->
-
-    animate: =>
-        requestAnimationFrame @animate
-        @renderer.render( @scene, @camera )
 
     getTextGeometry: (text) =>
         createGeometry
@@ -71,6 +71,12 @@ module.exports = class Main
         mesh = new THREE.Mesh(geometry, material)
         mesh
 
+    getMeshFromString: (string) =>
+        string_geom = @getTextGeometry string
+        string_mesh = @getTextMesh string_geom
+        string_mesh.scale.multiplyScalar(-1)
+        string_mesh
+
     processChain = (chain) ->
         chain.map (obj, i, array) ->
             obj.connector_index = obj.line.indexOf obj.connector
@@ -83,12 +89,6 @@ module.exports = class Main
                 obj.my_prev_connector_index = my_prev_idx
                 obj.prev_connector_index = prev_idx
             obj
-
-    getMeshFromString: (string) =>
-        string_geom = @getTextGeometry string
-        string_mesh = @getTextMesh string_geom
-        string_mesh.scale.multiplyScalar(-1)
-        string_mesh
 
     getLineObject: (_line, index) =>
         line_geometry = @getTextGeometry _line
@@ -104,7 +104,6 @@ module.exports = class Main
 
         lineObject = new THREE.Object3D()
         lineObject.add.apply(lineObject, letterObjects)
-        lineObject.position.y = - (index || 0) * (line_layout.height + 20)
         lineObject._line = _line
         lineObject._layout = line_layout
         lineObject
@@ -125,6 +124,8 @@ module.exports = class Main
         lineObjects = processChain(text)
             .map (line, index) =>
                 lineObject = @getLineObject(line.line, index)
+                height = lineObject._layout.height
+                lineObject.position.y = - (index) * (height + 20)
                 lineObject._line = line
                 lineObject
             .map positionLines
