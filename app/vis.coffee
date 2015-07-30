@@ -219,6 +219,11 @@ class Main
                         @camera.position.y = y(t)
                 .each "end", resolve
 
+    panCameraToBBox: (object, duration) =>
+        bbox = new THREE.BoundingBoxHelper( object, 0xff0000 )
+        do bbox.update
+        @panCameraToPosition bbox.box.center(), 1000
+
     zoomCameraToPosition: (target, duration) =>
         new Promise (resolve) =>
             d3.transition()
@@ -244,17 +249,22 @@ class Main
                         @camera.position.y = y(t)
                 .each "end", resolve
 
-    getTransitionPromise = (interpolator) ->
+    getTransitionPromise = (interpolator, duration) ->
         (text_object) ->
             new Promise (resolve) ->
                 d3.select(text_object).transition()
-                    .duration FADE_DURATION
+                    .duration duration or FADE_DURATION
                     .ease "poly", 5
                     .tween "fadeOpacity", ->
                         i = interpolator
                         (t) -> this.children.forEach (mesh) ->
                             mesh.material.uniforms.opacity.value = i(t)
                     .each "end", resolve
+
+    fade = (from, to, duration) ->
+        (text_object) ->
+            i = d3.interpolate from, to
+            getTransitionPromise(i, duration)(text_object)
 
     fadeOut = (text_object) ->
         i = d3.interpolate(0.5, 0)
@@ -346,6 +356,7 @@ class Main
 
     alignToNode = (parent) ->
         (child) ->
+            parent_x = parent._text_object.position.x
             word = parent.word
             regex = new RegExp word, "i"
             offset = [ parent, child ]
@@ -353,7 +364,35 @@ class Main
                     idx = _.line.search regex
                     _._text_object.children[idx].position.x
                 .reduce (a, b) -> a - b
-            child._text_object.position.x += offset
+            child._text_object.position.x = parent_x + offset
+
+    addObjects: (lines_object) =>
+        (root) =>
+            traverse = (node) =>
+                debugger if ! node.line?
+                node._text_object = @getLineObject(node.line)
+                node._text_object.children.forEach (mesh) ->
+                    mesh.material.uniforms.opacity.value = 0.2
+                lines_object.add node._text_object
+
+                node.children.forEach traverse if node.children
+
+            traverse(root)
+
+    # transitionTargetWord: (word, transition) =>
+    #     (child) =>
+    #
+
+    animateLines: (root) =>
+        traverse = (node) =>
+            @panCameraToBBox node._text_object
+                .then -> fade(0.2, 1, 1000) node._text_object
+                .then ->
+                    if node.children?
+                        promises = node.children.map (child) ->
+                             fade(0.2, 1, 1000) child._text_object
+
+        traverse root
 
     addLines: (lines) =>
         lines_object = new THREE.Object3D()
@@ -363,28 +402,20 @@ class Main
 
         root = linesToTree lines
 
+        @addObjects(lines_object)(root)
+
         traverse = (parent) =>
-            parent._text_object ?= @getLineObject(parent.line)
-            # parent._text_object.children.forEach (mesh) ->
-            #     mesh.material.uniforms.opacity.value = 0.5
-            lines_object.add parent._text_object
-
             return if ! parent.children?
-
-            parent.children.forEach (child) =>
-                child._text_object ?= @getLineObject(child.line)
-                child._text_object.children.forEach (mesh) ->
-                    mesh.material.uniforms.opacity.value = 0.5
-                lines_object.add child._text_object
 
             positions_array = d3.shuffle parent.children.concat parent
             parent_index = positions_array.indexOf parent
+            parent_y = parent._text_object.position.y
 
             positions_array.forEach (node, index) =>
                 offset_from_parent = index - parent_index
                 obj = node._text_object
-                height = obj._layout.height
-                obj.position.y = offset_from_parent * (height + LINE_SPACING)
+                line_height = obj._layout.height + LINE_SPACING
+                obj.position.y = parent_y + offset_from_parent * line_height
 
             parent.children.forEach alignToNode(parent)
 
@@ -392,25 +423,34 @@ class Main
 
         traverse root
 
-        # root._text_object ?= @getLineObject(root.line)
-        # root._text_object.children.forEach (mesh) ->
-        #     mesh.material.uniforms.opacity.value = 1
-        # lines_object.add root._text_object
-        #
-        # bbox = new THREE.BoundingBoxHelper( root._text_object, 0xff0000 )
-        # do bbox.update
-        #
-        # @scene.add bbox
-        #
-        # @panCameraToPosition bbox.box.center(), 1000
-        #     .then => @zoomToBoundingBoxWidth(bbox.box, 1000)
+        # addBBox = (node) =>
+        #     bbox = new THREE.BoundingBoxHelper( node._text_object, 0xff0000 )
+        #     do bbox.update
+        #     @scene.add bbox
+        #     if node.children
+        #         node.children.forEach addBBox
+        # addBBox root
 
+        @animateLines root
 
     animate: =>
         requestAnimationFrame @animate
         @renderer.render( @scene, @camera )
 
 module.exports = Main
+
+# bbox = new THREE.BoundingBoxHelper( root._text_object, 0xff0000 )
+# do bbox.update
+#
+# @scene.add bbox
+
+# bbox = new THREE.BoundingBoxHelper( root._text_object, 0xff0000 )
+# do bbox.update
+#
+# @scene.add bbox
+#
+# @panCameraToPosition bbox.box.center(), 1000
+#     .then => @zoomToBoundingBoxWidth(bbox.box, 1000)
 
 # app = createOrbitViewer({
 #     clearColor: 'rgb(255, 255, 255)',
