@@ -254,7 +254,7 @@ class Main
             new Promise (resolve) ->
                 d3.select(text_object).transition()
                     .duration duration or FADE_DURATION
-                    .ease "poly", 5
+                    # .ease "poly", 5
                     .tween "fadeOpacity", ->
                         i = interpolator
                         (t) -> this.children.forEach (mesh) ->
@@ -265,6 +265,12 @@ class Main
         (text_object) ->
             i = d3.interpolate from, to
             getTransitionPromise(i, duration)(text_object)
+
+    fadeTo = (to, duration) ->
+        (text_object) ->
+            current = text_object.children[0].material.uniforms.opacity.value
+            i = d3.interpolate current, to
+            getTransitionPromise(i, duration) text_object
 
     fadeOut = (text_object) ->
         i = d3.interpolate(0.5, 0)
@@ -327,6 +333,7 @@ class Main
                 .map (_) -> _.line
                 .indexOf(prev.line)
             current.children[prev_index] = prev
+            prev._parent = current
             current
 
         lines.reduceRight reducer
@@ -371,26 +378,42 @@ class Main
             traverse = (node) =>
                 debugger if ! node.line?
                 node._text_object = @getLineObject(node.line)
-                node._text_object.children.forEach (mesh) ->
-                    mesh.material.uniforms.opacity.value = 0.2
+                # node._text_object.children.forEach (mesh) ->
+                #     mesh.material.uniforms.opacity.value = 0
                 lines_object.add node._text_object
 
                 node.children.forEach traverse if node.children
 
             traverse(root)
 
-    # transitionTargetWord: (word, transition) =>
-    #     (child) =>
-    #
-
     animateLines: (root) =>
         traverse = (node) =>
+            return if ! node.children?
+
             @panCameraToBBox node._text_object
-                .then -> fade(0.2, 1, 1000) node._text_object
                 .then ->
+                    # Fade in node
+                    fadeTo(1, 1000) node._text_object
+                    # fade(0.2, 1, 1000) node._text_object
+                .then ->
+                    # Fade out siblings
+                    if node._parent?
+                        siblings = node._parent.children
+                            .filter (child) -> child isnt node
+                        parent = node._parent
+                        promises = siblings.concat(parent).map (child) ->
+                                fadeTo(0, 1000) child._text_object
+                        return Promise.all promises
+                .then ->
+                    # Fade in children
                     if node.children?
                         promises = node.children.map (child) ->
                              fade(0.2, 1, 1000) child._text_object
+                        return Promise.all promises
+                .then ->
+                    # Traverse next parent
+                    if node.children?
+                        node.children.forEach traverse
 
         traverse root
 
