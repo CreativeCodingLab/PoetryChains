@@ -19,6 +19,10 @@ do ->
             when "#colocation" then do colocationMode
             when "#lines" then do linesMode
 
+        test = vis.newTest()
+        interval = -> test.foo()
+        setInterval interval, 1000
+
     apiUrl = (call) ->
         "#{window.location.origin}/api/#{call}"
 

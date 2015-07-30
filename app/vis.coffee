@@ -7,7 +7,6 @@ assert = require "assert"
 
 module.exports = class Main
     SCALE_TEXT = 0.005
-    RADIUS = 700
 
     SPEED_MULTIPLIER = 0.5
 
@@ -452,6 +451,15 @@ module.exports = class Main
         traverse root
 
         @animateLines root
+
+    newTest: -> new Test(@scene, @camera)
+
+class Test extends Main
+    constructor: (@scene, @camera) ->
+
+    foo: ->
+        console.log @camera.position
+        debugger
 
 # addBBox = (node) =>
 #     bbox = new THREE.BoundingBoxHelper( node._text_object, 0xff0000 )
