@@ -75,7 +75,7 @@ public class LineMaker {
       s = s + word + " ";
     }
 
-    String s = s.replaceAll("\"", "\\\\\"");
+    s = s.replaceAll("\"", "\\\\\"");
 
     return s;
   }
