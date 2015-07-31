@@ -8,9 +8,9 @@ import java.util.*;
 public class LineMaker {
 
   static boolean OUTPUT_JSON = true;
-  static int MAX_LINES = 50; //max collocated lines per iteration
-  static int NUM_LINES = 30; //num iterations
- 
+  static int MAX_LINES = 10; //max collocated lines per iteration
+  static int NUM_LINES = 5; //num iterations
+
   public Word lastSelected = null;
 
   public static void main(String[] args)
@@ -40,13 +40,13 @@ public class LineMaker {
 
     //or, B
     //Word word = Utils.randomElement(Parser.rankedWords, 10000, 18000); //get a low frequency word
-    //makeNets(word, 10); 
-    
+    //makeNets(word, 10);
+
     makeLines();
   }
 
 
-  
+
 
 	public static <T> List<T> randomElements(Collection<T> collection, int howMany) {
 		if (collection.size() < howMany) {
@@ -74,6 +74,8 @@ public class LineMaker {
     {
       s = s + word + " ";
     }
+
+    String s = s.replaceAll("\"", "\\\\\"");
 
     return s;
   }
@@ -133,7 +135,7 @@ public class LineMaker {
 
       if (OUTPUT_JSON) {
         System.out.print("\t\t\"lines\":[\n");
-      } 
+      }
 
       for (int j = 0; j < lines.size(); j++) {
 

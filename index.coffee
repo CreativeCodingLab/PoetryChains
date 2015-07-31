@@ -22,6 +22,11 @@ app.get("/api/get-colocation.json", (request, response) ->
         response.json(data)
 )
 
+app.get("/api/get-lines.json", (request, response) ->
+    poetryFunctions().lineMaker().then (data) ->
+        response.json(data)
+)
+
 app.get "/app", browserify("./app/index.coffee")
 
 static_path = path.resolve __dirname, "static"

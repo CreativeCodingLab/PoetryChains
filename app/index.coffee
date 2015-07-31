@@ -5,16 +5,10 @@ vis = new Vis()
 
 do ->
     font_loaded = new Promise (resolve) ->
-        # do vis.animate
-
-        require('./load')({
-            # font: 'fnt/DejaVu-sdf.fnt',
-            # image: 'fnt/DejaVu-sdf.png'
-            # font: "fnt/Lato-Regular-64.fnt",
-            # image: "fnt/lato.png"
-            font: "fnt/test-font.fnt",
-            image: "fnt/test-font.png"
-        }, (font, texture) -> resolve({ font: font, texture: texture }))
+        require('./load')(
+            font: "fnt/Palatino-Linotype.fnt",
+            image: "fnt/Palatino-Linotype.png"
+        , (font, texture) -> resolve({ font: font, texture: texture }))
 
     font_loaded.then (obj) ->
         vis.setTexture(obj.texture)
@@ -23,29 +17,33 @@ do ->
         switch window.location.hash
             when "", "#chain" then do chainMode
             when "#colocation" then do colocationMode
+            when "#lines" then do linesMode
 
-    chainMode = ->
-        console.info "Starting Chain Mode."
+        test = vis.newTest()
+        interval = -> test.foo()
+        setInterval interval, 1000
 
-        poetry_chain_loaded = new Promise (resolve) ->
-            console.log "Requesting poetry chain..."
-            url = "#{window.location.origin}/api/get-chain.json"
-            d3.json(url, resolve)
+apiUrl = (call) ->
+    "#{window.location.origin}/api/#{call}"
 
-        poetry_chain_loaded.then (d) ->
-            # TODO: Get font with em-dash
-            # d.forEach (chain) ->
-            #     chain.forEach (line) ->
-            #         line.line = line.line.replace("--", "—")
+getJson = (apiCall, message) ->
+    new Promise (resolve) ->
+        console.info message
+        url = apiUrl apiCall
+        d3.json url, resolve
+
+linesMode = ->
+    console.info "Starting Lines Mode."
+    getJson "get-lines.json", "Requesting Lines..."
+        .then vis.addLines
+
+chainMode = ->
+    console.info "Starting Chain Mode."
+    getJson "get-chain.json", "Requesting poetry chain..."
+        .then (d) ->
             vis.addChain d[0]
 
-    colocationMode = ->
-        console.info "Starting Colocation Mode."
-
-        network_loaded = new Promise (resolve) ->
-            console.log "Requesting colocation network..."
-            url = "#{window.location.origin}/api/get-colocation.json"
-            d3.json(url, resolve)
-
-        network_loaded.then (d) ->
-            vis.addNetwork d
+colocationMode = ->
+    console.info "Starting Colocation Mode."
+    getJson "get-colocation.json", "Requesting colocation network..."
+        .then vis.addNetwork

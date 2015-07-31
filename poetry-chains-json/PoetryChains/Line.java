@@ -8,7 +8,7 @@ public class Line
   String text;
   Stanza stanza;
   Poem poem;
-  List<Word> words = new ArrayList<Word>();
+  public List<Word> words = new ArrayList<Word>();
   int total; //= total connections
   int rank; // higher rank = more connections
 
