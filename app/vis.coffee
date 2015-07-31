@@ -366,14 +366,18 @@ module.exports = class Main
 
     LINE_SPACING = 40
 
+    getWordIndex = (line, word) ->
+        # regex = new RegExp
+
     alignToNode = (parent) ->
         (child) ->
             parent_x = parent._text_object.position.x
             word = parent.word
-            regex = new RegExp word, "i"
+            regex = new RegExp("\\b#{word}\\b", "i")
             offset = [ parent, child ]
                 .map (_) ->
                     idx = _.line.search regex
+                    assert idx isnt -1
                     _._text_object.children[idx].position.x
                 .reduce (a, b) -> a - b
             child._text_object.position.x = parent_x + offset
@@ -391,9 +395,17 @@ module.exports = class Main
 
             traverse(root)
 
+    getOneWord: (text_object, word) ->
+        word_object = new THREE.Object3D()
+
+        debugger
+
     animateLines: (root) =>
+        _getOneWord = @getOneWord
         traverse = (node) =>
             return if ! node.children?
+
+            console.log node.word
 
             @panCameraToBBox node._text_object
                 .then ->
@@ -406,6 +418,7 @@ module.exports = class Main
                             .filter (child) -> child isnt node
                         parent = node._parent
                         promises = siblings.concat(parent).map (child) ->
+                                # word_object = _getOneWord(child._text_object, node.word)
                                 fadeTo(0, 1000) child._text_object
                         return Promise.all promises
                 .then ->
