@@ -66,6 +66,20 @@ public class LineMaker {
 	}
 
 
+
+  public static String removePuncationAndCapitals(Line l) {
+    
+    String s = "";
+    for (Word word : l.words)
+    {
+      s = s + word + " ";
+    }
+
+    s = s.replaceAll("\"", "\\\\\"");
+
+    return s;
+  }
+
   private static void makeLines() {
     Set<Line> uniquelist;
     List<Line> lines;
@@ -86,10 +100,12 @@ public class LineMaker {
       line = LineMaker.randomElements(lines, 1).get(0);
 
       if (OUTPUT_JSON) {
-        //   System.out.print("bahhhh");
-        System.out.print("\t{\n\t\t\"line\":\"" + line.text.replaceAll("\"", "\\\\\"") + "\",\n");
+        //System.out.print("\t{\n\t\t\"line\":\"" + line.text + "\",\n");
+        System.out.print("\t{\n\t\t\"line\":\"" + removePuncationAndCapitals(line) + "\",\n");
       } else {
-        System.out.println("line = " + line.text);
+        //System.out.println("line = " + line.text);
+        System.out.println("line = " + removePuncationAndCapitals(line));
+
       }
 
 
@@ -126,14 +142,16 @@ public class LineMaker {
         Line l = lines.get(j);
 
         if (OUTPUT_JSON) {
-          System.out.print("\t\t\t\"" + l.text.replaceAll("\"", "\\\\\"") + "\"");
+          //System.out.print("\t\t\t\"" + l.text + "\"");
+          System.out.print("\t\t\t\"" + removePuncationAndCapitals(l) + "\"");
+          
           if (j < lines.size() - 1) {
             System.out.print(",\n");
           } else {
             System.out.print("\n");
           }
         } else {
-          System.out.println(l.stanza.stanzaNum + ":" + l.lineNumber + ": " + l.text);
+          System.out.println(l.stanza.stanzaNum + ":" + l.lineNumber + ": " + removePuncationAndCapitals(line));
         }
       }
 
