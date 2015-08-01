@@ -448,13 +448,13 @@ module.exports = class Main
             Promise.resolve()
                 .then =>
                     # Fade out siblings
-                    # if node._parent?
-                    #     siblings = node._parent.children
-                    #         .filter (child) -> child isnt node
-                    #     parent = node._parent
-                    #     promises = siblings.concat(parent).map (child) ->
-                    #             fadeTo(0, 1000) child._text_object
-                    #     Promise.all promises
+                    if node._parent?
+                        siblings = node._parent.children
+                            .filter (child) -> child isnt node
+                        parent = node._parent
+                        promises = siblings.concat(parent).map (child) ->
+                                fadeToArray(0, 1000) child._text_object.children
+                        Promise.all promises
                     return true
                 .then =>
                     # Fade in children
