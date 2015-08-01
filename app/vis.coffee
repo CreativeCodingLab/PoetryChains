@@ -252,7 +252,7 @@ module.exports = class Main
                         @camera.position.y = y(t)
                 .each "end", resolve
 
-    getTransitionPromise = (interpolator, duration) ->
+    getFadePromise = (interpolator, duration) ->
         (text_object) ->
             new Promise (resolve) ->
                 d3.select(text_object).transition()
@@ -267,7 +267,7 @@ module.exports = class Main
     fade = (from, to, duration) ->
         (text_object) ->
             i = d3.interpolate from, to
-            getTransitionPromise(i, duration)(text_object)
+            getFadePromise(i, duration)(text_object)
 
     fadeTo = (to, duration) ->
         (text_object) ->
@@ -275,15 +275,15 @@ module.exports = class Main
                 text_object.children[0].material.uniforms.opacity.value
             else 0
             i = d3.interpolate current, to
-            getTransitionPromise(i, duration) text_object
+            getFadePromise(i, duration) text_object
 
     fadeOut = (text_object) ->
         i = d3.interpolate(0.5, 0)
-        getTransitionPromise(i)(text_object)
+        getFadePromise(i)(text_object)
 
     fadeIn = (text_object) ->
         i = d3.interpolate(0, 0.5)
-        getTransitionPromise(i)(text_object)
+        getFadePromise(i)(text_object)
 
     setTextObject: (node) =>
         text_object = @getLineObject(node.val)
@@ -420,13 +420,14 @@ module.exports = class Main
             Promise.resolve()
                 .then =>
                     # Fade out siblings
-                    if node._parent?
-                        siblings = node._parent.children
-                            .filter (child) -> child isnt node
-                        parent = node._parent
-                        promises = siblings.concat(parent).map (child) ->
-                                fadeTo(0, 1000) child._text_object
-                        Promise.all promises
+                    # if node._parent?
+                    #     siblings = node._parent.children
+                    #         .filter (child) -> child isnt node
+                    #     parent = node._parent
+                    #     promises = siblings.concat(parent).map (child) ->
+                    #             fadeTo(0, 1000) child._text_object
+                    #     Promise.all promises
+                    return true
                 .then =>
                     # Fade in children
                     if node.children?
