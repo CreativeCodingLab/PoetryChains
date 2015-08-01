@@ -271,7 +271,9 @@ module.exports = class Main
 
     fadeTo = (to, duration) ->
         (text_object) ->
-            current = text_object.children[0].material.uniforms.opacity.value
+            current = if text_object.children[0]?
+                text_object.children[0].material.uniforms.opacity.value
+            else 0
             i = d3.interpolate current, to
             getTransitionPromise(i, duration) text_object
 
@@ -367,7 +369,8 @@ module.exports = class Main
     LINE_SPACING = 40
 
     getWordIndex = (line, word) ->
-        regex = new RegExp "\\b#{word}\\b", "i"
+        expression = if word is "—" then word else "\\b#{word}\\b"
+        regex = new RegExp expression, "i"
         line.search regex
 
     alignToNode = (parent) ->
@@ -397,15 +400,14 @@ module.exports = class Main
 
             traverse(root)
 
-    getOneWord: (text_object, word) ->
+    getWordObjects: (text_object, word) ->
         word_object = new THREE.Object3D()
-
-
-
-        # debugger
+        begin = getWordIndex text_object._line, word
+        end = begin + word.length
+        text_object.children.slice begin, end
 
     animateLines: (root) =>
-        _getOneWord = @getOneWord
+        # _getOneWord = @getOneWord
         traverse = (node) =>
             return if ! node.children?
 
@@ -422,14 +424,15 @@ module.exports = class Main
                             .filter (child) -> child isnt node
                         parent = node._parent
                         promises = siblings.concat(parent).map (child) ->
-                                # word_object = _getOneWord child._text_object, node.word
                                 fadeTo(0, 1000) child._text_object
                         return Promise.all promises
-                .then ->
+                .then =>
                     # Fade in children
                     if node.children?
-                        promises = node.children.map (child) ->
-                             fade(0.2, 1, 1000) child._text_object
+                        promises = node.children.map (child) =>
+                            word_objects = @getWordObjects child._text_object, node.word
+                            # The fade functions expect a children array
+                            fadeTo(1, 1000) children: word_objects
                         return Promise.all promises
                 .then ->
                     # Traverse next parent
