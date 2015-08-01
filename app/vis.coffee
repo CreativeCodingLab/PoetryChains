@@ -407,17 +407,18 @@ module.exports = class Main
         text_object.children.slice begin, end
 
     animateLines: (root) =>
-        # _getOneWord = @getOneWord
+
+        fadeTo(1, 1000) root._text_object
+        @panCameraToBBox root._text_object
+            .then -> traverse root
+
         traverse = (node) =>
             return if ! node.children?
 
-            console.log node.word
+            next_child = node.children.filter((_) -> _.children?)[0]
 
-            @panCameraToBBox node._text_object
-                .then ->
-                    # Fade in node
-                    fadeTo(1, 1000) node._text_object
-                .then ->
+            Promise.resolve()
+                .then =>
                     # Fade out siblings
                     if node._parent?
                         siblings = node._parent.children
@@ -425,21 +426,25 @@ module.exports = class Main
                         parent = node._parent
                         promises = siblings.concat(parent).map (child) ->
                                 fadeTo(0, 1000) child._text_object
-                        return Promise.all promises
+                        Promise.all promises
                 .then =>
                     # Fade in children
                     if node.children?
                         promises = node.children.map (child) =>
-                            word_objects = @getWordObjects child._text_object, node.word
-                            # The fade functions expect a children array
-                            fadeTo(1, 1000) children: word_objects
-                        return Promise.all promises
-                .then ->
-                    # Traverse next parent
-                    if node.children?
-                        node.children.forEach traverse
 
-        traverse root
+                            # Get the array of letters for the target word only
+                            word = @getWordObjects child._text_object, node.word
+
+                            # The fade functions expect a "children" property
+                            fadeTo(1, 1000) children: word
+                        return Promise.all promises
+                .then =>
+                    if next_child?
+                        fadeTo(1, 1000) next_child._text_object
+                        @panCameraToBBox next_child._text_object
+                .then ->
+                    traverse next_child unless ! next_child?
+
 
     addLines: (lines) =>
         lines_object = new THREE.Object3D()
