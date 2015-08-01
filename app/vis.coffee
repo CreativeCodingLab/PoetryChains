@@ -264,6 +264,34 @@ module.exports = class Main
                             mesh.material.uniforms.opacity.value = i(t)
                     .each "end", resolve
 
+    fadeToArray = (to, duration) ->
+        (array) ->
+            new Promise (resolve) ->
+                d3.selectAll array
+                    .transition()
+                    .duration duration
+                    .delay (_, i) -> i * 10
+                    .tween "fadeOpacity", ->
+                        from = this.material.uniforms.opacity.value
+                        i = d3.interpolate from, to
+                        (t) ->
+                            this.material.uniforms.opacity.value = i(t)
+                    .each "end", resolve
+
+    getFadeLettersPromise = (to, duration) ->
+        (text_object) ->
+            new Promise (resolve) ->
+                d3.selectAll(text_object.children)
+                    .transition()
+                    .duration duration
+                    .tween "fadeOpacity", ->
+                        from = this.material.uniforms.opacity.value
+                        i = d3.interpolate from, to
+                        (t) ->
+                            this.material.uniforms.opacity.value = i(t)
+                    .each "end", resolve
+
+
     fade = (from, to, duration) ->
         (text_object) ->
             i = d3.interpolate from, to
@@ -408,7 +436,7 @@ module.exports = class Main
 
     animateLines: (root) =>
 
-        fadeTo(1, 1000) root._text_object
+        fadeToArray(1, 1000) root._text_object.children
         @panCameraToBBox root._text_object
             .then -> traverse root
 
@@ -434,14 +462,15 @@ module.exports = class Main
                         promises = node.children.map (child) =>
 
                             # Get the array of letters for the target word only
-                            word = @getWordObjects child._text_object, node.word
+                            children = @getWordObjects child._text_object, node.word
 
                             # The fade functions expect a "children" property
-                            fadeTo(1, 1000) children: word
+                            # fadeTo(1, 1000) children: word
+                            fadeToArray(1, 1000) children
                         return Promise.all promises
                 .then =>
                     if next_child?
-                        fadeTo(1, 1000) next_child._text_object
+                        fadeToArray(1, 1000) next_child._text_object.children
                         @panCameraToBBox next_child._text_object
                 .then ->
                     traverse next_child unless ! next_child?
