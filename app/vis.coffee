@@ -14,6 +14,11 @@ module.exports = class Main
     FADE_DURATION = 3000 * SPEED_MULTIPLIER
     CHAIN_FADE_DELAY = 5000 * SPEED_MULTIPLIER
 
+    CAMERA_Z = -9
+
+    scaleText: SCALE_TEXT
+    speedMultiplier: SPEED_MULTIPLIER
+
     constructor: ->
         console.log "Starting Vis"
 
@@ -31,7 +36,7 @@ module.exports = class Main
         [ near, far ] = [ 0.1, 1000 ]
         @camera = new THREE.PerspectiveCamera( fov, aspect, near, far )
 
-        [_x, _y, _z] = [0, 0, -9]
+        [_x, _y, _z] = [0, 0, CAMERA_Z]
         @camera.position.z = _z
         @camera.position.x = _x
         @camera.position.y = _y
@@ -60,7 +65,7 @@ module.exports = class Main
     getTextMesh: (geometry) ->
         material = new THREE.ShaderMaterial(Shader({
             map: @texture,
-            smooth: 1/8,
+            smooth: 1/10,
             side: THREE.DoubleSide,
             transparent: true,
             opacity: 0,
@@ -93,64 +98,65 @@ module.exports = class Main
         lineObject._layout = line_layout
         lineObject
 
-    processChain = (chain) ->
-        chain.map (obj, i, array) ->
-            obj.connector_index = obj.line.indexOf obj.connector
-            if i > 0
-                prev = array[i-1]
-                prev_con = prev.connector
-                my_prev_idx = obj.line.indexOf prev_con
-                prev_idx = prev.connector_index
-                obj.prev_connector = prev_con
-                obj.my_prev_connector_index = my_prev_idx
-                obj.prev_connector_index = prev_idx
-            obj
+    # processChain = (chain) ->
+    #     chain.map (obj, i, array) ->
+    #         obj.connector_index = obj.line.indexOf obj.connector
+    #         if i > 0
+    #             prev = array[i-1]
+    #             prev_con = prev.connector
+    #             my_prev_idx = obj.line.indexOf prev_con
+    #             prev_idx = prev.connector_index
+    #             obj.prev_connector = prev_con
+    #             obj.my_prev_connector_index = my_prev_idx
+    #             obj.prev_connector_index = prev_idx
+    #         obj
 
-    positionLines = (line, index, array) =>
-        return line if index is 0
-
-        prev = array[index - 1]
-        prev_connector_idx = prev._line.connector_index
-        my_prev_connector_idx = line._line.my_prev_connector_index
-
-        line.position.x = prev.position.x
-        line.position.x += prev.children[prev_connector_idx].position.x
-        line.position.x -= line.children[my_prev_connector_idx].position.x
-        line
+    # positionLines = (line, index, array) =>
+    #     return line if index is 0
+    #
+    #     prev = array[index - 1]
+    #     prev_connector_idx = prev._line.connector_index
+    #     my_prev_connector_idx = line._line.my_prev_connector_index
+    #
+    #     line.position.x = prev.position.x
+    #     line.position.x += prev.children[prev_connector_idx].position.x
+    #     line.position.x -= line.children[my_prev_connector_idx].position.x
+    #     line
 
     addChain: (text) =>
         chainVis = new ChainVis @scene, @camera, @font, @texture
         chainVis.start text
 
-    _addChain: (text) =>
-        lineObjects = processChain(text)
-            .map (line, index) =>
-                lineObject = @getLineObject(line.line, index)
-                height = lineObject._layout.height
-                lineObject.position.y = - (index) * (height + 20)
-                lineObject._line = line
-                lineObject
-            .map positionLines
-
-        chainObject = new THREE.Object3D()
-        chainObject.add.apply(chainObject, lineObjects)
-        chainObject.scale.multiplyScalar(SCALE_TEXT)
-        @scene.add(chainObject)
-
-        console.log this
-
-        _pan = @panCameraToBBox
-
-        d3.selectAll(lineObjects).transition()
-            .duration FADE_DURATION
-            .delay (_,i) -> i * CHAIN_FADE_DELAY
-            .ease "poly", 5
-            .tween "fadeOpacity", ->
-                i = d3.interpolate(0,0.5)
-                (t) -> this.children.forEach (mesh) ->
-                    mesh.material.uniforms.opacity.value = i(t)
-            .each "end", ->
-                _pan(this, 1000)
+    # _addChain: (text) =>
+    #     lineObjects = processChain(text)
+    #         .map (line, index) =>
+    #             lineObject = @getLineObject(line.line, index)
+    #             height = lineObject._layout.height
+    #             lineObject.position.y = - (index) * (height + 20)
+    #             lineObject._line = line
+    #             lineObject
+    #         .map positionLines
+    #
+    #     chainObject = new THREE.Object3D()
+    #     chainObject.add.apply(chainObject, lineObjects)
+    #     chainObject.scale.multiplyScalar(SCALE_TEXT)
+    #     @scene.add(chainObject)
+    #
+    #     # console.log this
+    #
+    #     _pan = @panCameraToBBox
+    #     self = @
+    #
+    #     d3.selectAll(lineObjects).transition()
+    #         .duration FADE_DURATION
+    #         .delay (_,i) -> i * CHAIN_FADE_DELAY
+    #         .ease "poly", 5
+    #         .tween "fadeOpacity", ->
+    #             i = d3.interpolate(0,0.5)
+    #             (t) -> this.children.forEach (mesh) ->
+    #                 mesh.material.uniforms.opacity.value = i(t)
+    #         .each "end", ->
+    #             self.panCameraToBBox(this, 1000)
 
     getRadians = (a, b) ->
         dx = a.position.x - b.position.x
@@ -202,6 +208,8 @@ module.exports = class Main
                 pos = new THREE.Vector3(
                     radius * Math.cos(radians) + node.position.x,
                     radius * Math.sin(radians) + node.position.y
+                    # 0,
+                    # radius * Math.sin(radians) + node.position.z
                 )
                 if circle_node.position?
                     # check = pos.y.toFixed(3) is circle_node.position.y.toFixed(3)
@@ -214,6 +222,21 @@ module.exports = class Main
 
         traverse(root)
         return root
+
+    panCameraToPosition3: (target, duration) =>
+        new Promise (resolve) =>
+            d3.transition()
+                .duration duration || 1000
+                .tween "moveCamera", =>
+                    current = @camera.position
+                    x = d3.interpolate(current.x, target.x)
+                    y = d3.interpolate(current.y, target.y)
+                    z = d3.interpolate current.z, target.z + CAMERA_Z
+                    (t) =>
+                        @camera.position.x = x(t)
+                        @camera.position.y = y(t)
+                        @camera.position.z = z(t)
+                .each "end", resolve
 
     panCameraToPosition: (target, duration) =>
         new Promise (resolve) =>
@@ -232,9 +255,9 @@ module.exports = class Main
         bbox = new THREE.BoundingBoxHelper( object, 0xff0000 )
         do bbox.update
 
-        console.log @
+        # console.log @
 
-        @panCameraToPosition bbox.box.center(), duration
+        @panCameraToPosition3 bbox.box.center(), duration
 
     zoomCameraToPosition: (target, duration) =>
         new Promise (resolve) =>
@@ -333,11 +356,13 @@ module.exports = class Main
         node
 
     addNetwork: (network) =>
+        radius = 700
+        rotation = Math.PI / 2.2
+
         network_object = new THREE.Object3D()
         network_object.scale.multiplyScalar(SCALE_TEXT)
+        network_object.rotateX rotation
         @scene.add network_object
-
-        radius = 500
 
         root = makeTree network
         root = setNetworkPositions root, radius
@@ -347,6 +372,7 @@ module.exports = class Main
 
             node = @setTextObject(node)
             text_object = node._text_object
+            text_object.rotateX -rotation
             network_object.add text_object
 
             faded_in = fadeIn(text_object)
@@ -478,7 +504,7 @@ module.exports = class Main
                     return true
                 .then =>
                     # Fade in children
-                    if node.children?
+                    if next_child?
                         promises = node.children.map (child) =>
                             # Get the array of letters for the target word only
                             children = @getWordObjects child._text_object, node.word
@@ -487,16 +513,16 @@ module.exports = class Main
                 .then =>
                     if next_child?
                         pos = node._positions_array
-                        curr = pos.indexOf(node) + 1
-                        next = pos.indexOf(next_child) + 1
+                        curr = pos.indexOf(node)
+                        next = pos.indexOf(next_child)
                         if curr < next
-                            fade_array = pos.slice curr, next
+                            fade_array = pos.slice(curr + 1, next + 1)
                         else
                             fade_array = pos.slice(next, curr).reverse()
                         @chainedFadeIn fade_array, 1000
                 .then =>
                     if next_child?
-                        fadeToArray(1, 1000) next_child._text_object.children
+                        # fadeToArray(1, 1000) next_child._text_object.children
                         @panCameraToBBox next_child._text_object
                 .then ->
                     traverse next_child unless ! next_child?
@@ -547,8 +573,63 @@ class ChainVis extends Main
         console.info "New ChainVis."
 
     start: (data) =>
-        console.log this
+        # console.log this
         @_addChain data
+
+    _addChain: (text) =>
+        lineObjects = processChain(text)
+            .map (line, index) =>
+                lineObject = @getLineObject(line.line, index)
+                height = lineObject._layout.height
+                lineObject.position.y = - (index) * (height + 20)
+                lineObject._line = line
+                lineObject
+            .map positionLines
+
+        chainObject = new THREE.Object3D()
+        chainObject.add.apply(chainObject, lineObjects)
+        chainObject.scale.multiplyScalar(@scaleText)
+        @scene.add(chainObject)
+
+        self = @
+
+        console.log @speedMultiplier
+
+        d3.selectAll(lineObjects).transition()
+            .duration(3000 * @speedMultiplier)
+            .delay((_,i) => i * 5000 * @speedMultiplier)
+            .ease "poly", 5
+            .tween "fadeOpacity", ->
+                i = d3.interpolate(0,0.5)
+                (t) -> this.children.forEach (mesh) ->
+                    mesh.material.uniforms.opacity.value = i(t)
+            .each "end", ->
+                self.panCameraToBBox(this, 1000)
+
+    positionLines = (line, index, array) =>
+        return line if index is 0
+
+        prev = array[index - 1]
+        prev_connector_idx = prev._line.connector_index
+        my_prev_connector_idx = line._line.my_prev_connector_index
+
+        line.position.x = prev.position.x
+        line.position.x += prev.children[prev_connector_idx].position.x
+        line.position.x -= line.children[my_prev_connector_idx].position.x
+        line
+
+    processChain = (chain) ->
+        chain.map (obj, i, array) ->
+            obj.connector_index = obj.line.indexOf obj.connector
+            if i > 0
+                prev = array[i-1]
+                prev_con = prev.connector
+                my_prev_idx = obj.line.indexOf prev_con
+                prev_idx = prev.connector_index
+                obj.prev_connector = prev_con
+                obj.my_prev_connector_index = my_prev_idx
+                obj.prev_connector_index = prev_idx
+            obj
 
 # addFadeOpacityTransition(1, 1000, curr._text_object)(prev)
 # prev.transition()
