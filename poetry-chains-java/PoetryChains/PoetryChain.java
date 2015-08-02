@@ -46,7 +46,11 @@ public class PoetryChain
       System.out.print("\t\t\"line\":\"");
       for (int j = 0; j < line.words.size(); j++) { 
         Word w = line.words.get(j); 
-        System.out.print(w);
+        String theWord = w.word; 
+       
+        theWord = theWord.replaceAll("\"", "\\\\\"");
+
+        System.out.print(theWord);
         if (j < line.words.size() - 1) {
           System.out.print(" ");
         }
@@ -67,6 +71,9 @@ public class PoetryChain
         
   }
 
+
+  /* not using this one... */
+  /*
   public void printChainJson()
   {
     System.out.println("[");
@@ -92,5 +99,6 @@ public class PoetryChain
     }
     System.out.println("]");
   }
+  */
 
 }

@@ -381,7 +381,7 @@ public class Parser
       if (!wordStr.equals("--"))
       {
 	      //REMOVE PUNCTUATION
-        wordStr = wordStr.replaceAll("\\p{Punct}+", "");
+        //wordStr = wordStr.replaceAll("\\p{Punct}+", "");
       }
       currentWord = words.get(wordStr);
 
