@@ -252,7 +252,7 @@ module.exports = class Main
                         @camera.position.y = y(t)
                 .each "end", resolve
 
-    getTransitionPromise = (interpolator, duration) ->
+    getFadePromise = (interpolator, duration) ->
         (text_object) ->
             new Promise (resolve) ->
                 d3.select(text_object).transition()
@@ -264,24 +264,54 @@ module.exports = class Main
                             mesh.material.uniforms.opacity.value = i(t)
                     .each "end", resolve
 
+    fadeToArray = (to, duration) ->
+        (array) ->
+            new Promise (resolve) ->
+                d3.selectAll array
+                    .transition()
+                    .duration duration
+                    .delay (_, i) -> i * 10
+                    .tween "fadeOpacity", ->
+                        from = this.material.uniforms.opacity.value
+                        i = d3.interpolate from, to
+                        (t) ->
+                            this.material.uniforms.opacity.value = i(t)
+                    .each "end", resolve
+
+    getFadeLettersPromise = (to, duration) ->
+        (text_object) ->
+            new Promise (resolve) ->
+                d3.selectAll(text_object.children)
+                    .transition()
+                    .duration duration
+                    .tween "fadeOpacity", ->
+                        from = this.material.uniforms.opacity.value
+                        i = d3.interpolate from, to
+                        (t) ->
+                            this.material.uniforms.opacity.value = i(t)
+                    .each "end", resolve
+
+
     fade = (from, to, duration) ->
         (text_object) ->
             i = d3.interpolate from, to
-            getTransitionPromise(i, duration)(text_object)
+            getFadePromise(i, duration)(text_object)
 
     fadeTo = (to, duration) ->
         (text_object) ->
-            current = text_object.children[0].material.uniforms.opacity.value
+            current = if text_object.children[0]?
+                text_object.children[0].material.uniforms.opacity.value
+            else 0
             i = d3.interpolate current, to
-            getTransitionPromise(i, duration) text_object
+            getFadePromise(i, duration) text_object
 
     fadeOut = (text_object) ->
         i = d3.interpolate(0.5, 0)
-        getTransitionPromise(i)(text_object)
+        getFadePromise(i)(text_object)
 
     fadeIn = (text_object) ->
         i = d3.interpolate(0, 0.5)
-        getTransitionPromise(i)(text_object)
+        getFadePromise(i)(text_object)
 
     setTextObject: (node) =>
         text_object = @getLineObject(node.val)
@@ -366,14 +396,21 @@ module.exports = class Main
 
     LINE_SPACING = 40
 
+    getWordIndex = (line, word) ->
+        expression = if word is "—" then word else "\\b#{word}\\b"
+        regex = new RegExp expression, "i"
+        line.search regex
+
     alignToNode = (parent) ->
         (child) ->
             parent_x = parent._text_object.position.x
             word = parent.word
-            regex = new RegExp word, "i"
+            # regex = new RegExp("\\b#{word}\\b", "i")
             offset = [ parent, child ]
                 .map (_) ->
-                    idx = _.line.search regex
+                    # idx = _.line.search regex
+                    idx = getWordIndex _.line, word
+                    assert idx isnt -1, "#{_.line}, #{word}"
                     _._text_object.children[idx].position.x
                 .reduce (a, b) -> a - b
             child._text_object.position.x = parent_x + offset
@@ -391,35 +428,53 @@ module.exports = class Main
 
             traverse(root)
 
+    getWordObjects: (text_object, word) ->
+        word_object = new THREE.Object3D()
+        begin = getWordIndex text_object._line, word
+        end = begin + word.length
+        text_object.children.slice begin, end
+
     animateLines: (root) =>
+
+        fadeToArray(1, 1000) root._text_object.children
+        @panCameraToBBox root._text_object
+            .then -> traverse root
+
         traverse = (node) =>
             return if ! node.children?
 
-            @panCameraToBBox node._text_object
-                .then ->
-                    # Fade in node
-                    fadeTo(1, 1000) node._text_object
-                .then ->
+            next_child = node.children.filter((_) -> _.children?)[0]
+
+            Promise.resolve()
+                .then =>
                     # Fade out siblings
                     if node._parent?
                         siblings = node._parent.children
                             .filter (child) -> child isnt node
                         parent = node._parent
                         promises = siblings.concat(parent).map (child) ->
-                                fadeTo(0, 1000) child._text_object
-                        return Promise.all promises
-                .then ->
+                                fadeToArray(0, 1000) child._text_object.children
+                        Promise.all promises
+                    return true
+                .then =>
                     # Fade in children
                     if node.children?
-                        promises = node.children.map (child) ->
-                             fade(0.2, 1, 1000) child._text_object
-                        return Promise.all promises
-                .then ->
-                    # Traverse next parent
-                    if node.children?
-                        node.children.forEach traverse
+                        promises = node.children.map (child) =>
 
-        traverse root
+                            # Get the array of letters for the target word only
+                            children = @getWordObjects child._text_object, node.word
+
+                            # The fade functions expect a "children" property
+                            # fadeTo(1, 1000) children: word
+                            fadeToArray(1, 1000) children
+                        return Promise.all promises
+                .then =>
+                    if next_child?
+                        fadeToArray(1, 1000) next_child._text_object.children
+                        @panCameraToBBox next_child._text_object
+                .then ->
+                    traverse next_child unless ! next_child?
+
 
     addLines: (lines) =>
         lines_object = new THREE.Object3D()
