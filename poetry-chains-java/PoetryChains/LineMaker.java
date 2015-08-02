@@ -68,7 +68,7 @@ public class LineMaker {
 
 
   public static String removePuncationAndCapitals(Line l) {
-    
+
     String s = "";
     for (Word word : l.words)
     {
@@ -81,7 +81,7 @@ public class LineMaker {
   }
 
 private static void testMe() {
-  
+
 Word w = Parser.words.get("midnight\"");
 
 System.out.println("w = " + w);
@@ -91,10 +91,10 @@ System.out.println("w = " + w);
 
    // Line line = lines.get(7);
 
-    for (Line line : lines) { 
-     
-     System.out.println(line.text); 
-      
+    for (Line line : lines) {
+
+     System.out.println(line.text);
+
      int sIdx = line.calcStartIndexOfWordInLine(w);
      int eIdx = line.calcEndIndexOfWordInLine(w);
 
@@ -111,9 +111,9 @@ System.out.println("w = " + w);
 }
 
   private static void makeLines() {
-  
-  testMe();
-  
+
+  // testMe();
+
     Set<Line> uniquelist;
     List<Line> lines;
     Word word;
@@ -133,7 +133,7 @@ System.out.println("w = " + w);
       line = LineMaker.randomElements(lines, 1).get(0);
 
       if (OUTPUT_JSON) {
-        System.out.print("\t{\n\t\t\"line\":\"" + line.text + "\",\n");
+        System.out.print("\t{\n\t\t\"line\":\"" + line.text.replaceAll("\"", "\\\\\"") + "\",\n");
         //System.out.print("\t{\n\t\t\"line\":\"" + removePuncationAndCapitals(line) + "\",\n");
       } else {
         System.out.println("line = " + line.text);
@@ -187,9 +187,9 @@ System.out.println("w = " + w);
         int eIdx = l.calcEndIndexOfWordInLine(word);
 
         if (OUTPUT_JSON) {
-          System.out.print("\t\t\t{\"line\":\"" + l.text + "\",\"sIdx\":"+sIdx+",\"eIdx\":"+eIdx+"}");
+          System.out.print("\t\t\t{\"line\":\"" + l.text.replaceAll("\"", "\\\\\"") + "\",\"sIdx\":"+sIdx+",\"eIdx\":"+eIdx+"}");
           //System.out.print("\t\t\t\"" + removePuncationAndCapitals(l) + "\"");
-          
+
           if (j < lines.size() - 1) {
             System.out.print(",\n");
           } else {
