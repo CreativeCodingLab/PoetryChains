@@ -80,7 +80,40 @@ public class LineMaker {
     return s;
   }
 
+private static void testMe() {
+  
+Word w = Parser.words.get("midnight\"");
+
+System.out.println("w = " + w);
+
+
+    List<Line> lines = w.lines;
+
+   // Line line = lines.get(7);
+
+    for (Line line : lines) { 
+     
+     System.out.println(line.text); 
+      
+     int sIdx = line.calcStartIndexOfWordInLine(w);
+     int eIdx = line.calcEndIndexOfWordInLine(w);
+
+     System.out.print("\t\t\"sIdx\":\"" + sIdx + "\",\n");
+     System.out.print("\t\t\"eIdx\":\"" + eIdx + "\",\n");
+
+
+   }
+
+
+  System.exit(0);
+
+
+}
+
   private static void makeLines() {
+  
+  testMe();
+  
     Set<Line> uniquelist;
     List<Line> lines;
     Word word;
