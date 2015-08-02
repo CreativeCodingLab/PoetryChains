@@ -278,17 +278,25 @@ module.exports = class Main
                             this.material.uniforms.opacity.value = i(t)
                     .each "end", resolve
 
+    fadeOpacityTween = (to) ->
+        ->
+            from = this.material.uniforms.opacity.value
+            i = d3.interpolate from, to
+            (t) ->
+                this.material.uniforms.opacity.value = i(t)
+
     getFadeLettersPromise = (to, duration) ->
         (text_object) ->
             new Promise (resolve) ->
                 d3.selectAll(text_object.children)
                     .transition()
                     .duration duration
-                    .tween "fadeOpacity", ->
-                        from = this.material.uniforms.opacity.value
-                        i = d3.interpolate from, to
-                        (t) ->
-                            this.material.uniforms.opacity.value = i(t)
+                    .tween "fadeOpacity", fadeOpacityTween(to)
+                    # .tween "fadeOpacity", ->
+                    #     from = this.material.uniforms.opacity.value
+                    #     i = d3.interpolate from, to
+                    #     (t) ->
+                    #         this.material.uniforms.opacity.value = i(t)
                     .each "end", resolve
 
 
@@ -434,6 +442,16 @@ module.exports = class Main
         end = begin + word.length
         text_object.children.slice begin, end
 
+    chainedFadeIn: (children, target_child, duration) ->
+        # transition = (prev, curr, index, array) ->
+        #     prev.transition()
+        #         .duration duration
+        #         .tween "fadeOpacity", ->
+        #             from = this.material.uniforms.opacity.value
+        #             i = d3.interpolate from, to
+        #             (t) ->
+        #                 this.material.uniforms.opacity.value = i(t)
+
     animateLines: (root) =>
 
         fadeToArray(1, 1000) root._text_object.children
@@ -468,6 +486,9 @@ module.exports = class Main
                             # fadeTo(1, 1000) children: word
                             fadeToArray(1, 1000) children
                         return Promise.all promises
+                .then =>
+                    if next_child?
+                        @chainedFadeIn node.children, next_child
                 .then =>
                     if next_child?
                         fadeToArray(1, 1000) next_child._text_object.children
