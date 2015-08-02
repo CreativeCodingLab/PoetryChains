@@ -1,5 +1,5 @@
 express = require("express")
-poetryFunctions = require "./poetry-chains-json"
+poetryFunctions = require "./poetry-chains-java"
 browserify = require 'browserify-middleware'
 coffeeify = require 'coffeeify'
 path = require "path"
