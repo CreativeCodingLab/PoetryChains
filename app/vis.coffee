@@ -42,6 +42,13 @@ module.exports = class Main
         @camera.position.y = _y
         @camera.lookAt new THREE.Vector3(_x,_y,0)
 
+        onWindowResize = =>
+            @camera.aspect = window.innerWidth / window.innerHeight
+            @camera.updateProjectionMatrix()
+            @renderer.setSize( window.innerWidth, window.innerHeight )
+
+        window.addEventListener( 'resize', onWindowResize, false )
+
         do animate = =>
             requestAnimationFrame animate
             @renderer.render @scene, @camera
@@ -125,24 +132,9 @@ module.exports = class Main
                         @camera.position.z = z(t)
                 .each "end", resolve
 
-    panCameraToPosition: (target, duration) =>
-        new Promise (resolve) =>
-            d3.transition()
-                .duration duration || 1000
-                .tween "moveCamera", =>
-                    current = @camera.position
-                    x = d3.interpolate(current.x, target.x)
-                    y = d3.interpolate(current.y, target.y)
-                    (t) =>
-                        @camera.position.x = x(t)
-                        @camera.position.y = y(t)
-                .each "end", resolve
-
     panCameraToBBox: (object, duration) =>
         bbox = new THREE.BoundingBoxHelper( object, 0xff0000 )
         do bbox.update
-
-        # console.log @
 
         @panCameraToPosition3 bbox.box.center(), duration
 
@@ -156,18 +148,6 @@ module.exports = class Main
                     (t) =>
                         @camera.position.z = z(t)
                 .each "end", resolve
-
-    getFadePromise = (interpolator, duration) ->
-        (text_object) ->
-            new Promise (resolve) ->
-                d3.select(text_object).transition()
-                    .duration duration or FADE_DURATION
-                    # .ease "poly", 5
-                    .tween "fadeOpacity", ->
-                        i = interpolator
-                        (t) -> this.children.forEach (mesh) ->
-                            mesh.material.uniforms.opacity.value = i(t)
-                    .each "end", resolve
 
     addFadeOpacityTransition = (to, duration, target) ->
         (selection) ->
@@ -191,39 +171,6 @@ module.exports = class Main
 
     fadeToArray: fadeToArray
 
-    getFadeLettersPromise = (to, duration) ->
-        (text_object) ->
-            new Promise (resolve) ->
-                d3.selectAll(text_object.children)
-                    .transition()
-                    .duration duration
-                    .tween "fadeOpacity", fadeOpacityTween(to)
-                    .each "end", resolve
-
-    setTextObject: (node) =>
-        text_object = @getLineObject(node.val)
-        text_object.children.forEach (mesh) ->
-            mesh.material.uniforms.opacity.value = 0
-        text_object.position.copy(node.position)
-        node._text_object = text_object
-        node
-
-    linesToTree = (lines) ->
-        lines = lines.map (line) ->
-            line: line.line
-            word: line.word
-            children: line.lines.map (_) -> line: _
-
-        reducer = (prev, current, index, array) ->
-            prev_index = current.children
-                .map (_) -> _.line
-                .indexOf(prev.line)
-            current.children[prev_index] = prev
-            prev._parent = current
-            current
-
-        lines.reduceRight reducer
-
     _radianScale = d3.scale.linear()
         .domain([0, 360])
         .range([0, Math.PI * 2])
@@ -245,12 +192,12 @@ module.exports = class Main
 
         @zoomCameraToPosition target, duration
 
-    LINE_SPACING = 40
-
     getWordIndex = (line, word) ->
         expression = if word is "—" then word else "\\b#{word}\\b"
         regex = new RegExp expression, "i"
         line.search regex
+
+    getWordIndex: getWordIndex
 
     alignToNode = (parent) ->
         (child) ->
@@ -266,18 +213,7 @@ module.exports = class Main
                 .reduce (a, b) -> a - b
             child._text_object.position.x = parent_x + offset
 
-    addObjects: (lines_object) =>
-        (root) =>
-            traverse = (node) =>
-                debugger if ! node.line?
-                node._text_object = @getLineObject(node.line)
-                # node._text_object.children.forEach (mesh) ->
-                #     mesh.material.uniforms.opacity.value = 0
-                lines_object.add node._text_object
-
-                node.children.forEach traverse if node.children
-
-            traverse(root)
+    alignToNode: alignToNode
 
     getWordObjects: (text_object, word) ->
         word_object = new THREE.Object3D()
@@ -286,15 +222,28 @@ module.exports = class Main
         text_object.children.slice begin, end
 
     chainedFadeIn: (array, duration) ->
-        reduction = (promise, curr, index, array) ->
-            promise.then ->
-                fadeToArray(1, 1000) curr._text_object.children
+        reduction = (promise, curr, index, array) =>
+            promise.then =>
+                @fadeToArray(1, 1000) curr._text_object.children
 
         promise = array.reduce reduction, Promise.resolve()
 
-    animateLines: (root) =>
+class LinesVis extends Main
+    lineSpacing: 40
 
-        fadeToArray(1, 1000) root._text_object.children
+    constructor: (@scene, @camera, @font, @texture) ->
+        console.info "New LinesVis."
+
+    start: (data) ->
+        root = @_addLines data
+        @animateLines root
+
+    ########################
+    # ANIMATE LINES
+    #
+    animateLines: (root) =>
+        # Fade in the root
+        @fadeToArray(1, 1000) root._text_object.children
         @panCameraToBBox root._text_object
             .then -> traverse root
 
@@ -311,8 +260,8 @@ module.exports = class Main
                         siblings = node._parent.children
                             .filter (child) -> child isnt node
                         parent = node._parent
-                        promises = siblings.concat(parent).map (child) ->
-                                fadeToArray(0, 1000) child._text_object.children
+                        promises = siblings.concat(parent).map (child) =>
+                                @fadeToArray(0, 1000) child._text_object.children
                         return Promise.all promises
                     return true
                 .then =>
@@ -321,9 +270,10 @@ module.exports = class Main
                         promises = node.children.map (child) =>
                             # Get the array of letters for the target word only
                             children = @getWordObjects child._text_object, node.word
-                            fadeToArray(1, 1000) children
+                            @fadeToArray(1, 1000) children
                         return Promise.all promises
                 .then =>
+                    # Chained fade-in of child lines
                     if next_child?
                         pos = node._positions_array
                         curr = pos.indexOf(node)
@@ -340,10 +290,9 @@ module.exports = class Main
                 .then ->
                     traverse next_child unless ! next_child?
 
-
     _addLines: (lines) =>
         lines_object = new THREE.Object3D()
-        lines_object.scale.multiplyScalar(SCALE_TEXT)
+        lines_object.scale.multiplyScalar(@scaleText)
         lines_object.updateMatrixWorld(true)
         @scene.add lines_object
 
@@ -363,22 +312,45 @@ module.exports = class Main
             positions_array.forEach (node, index) =>
                 offset_from_parent = index - parent_index
                 obj = node._text_object
-                line_height = obj._layout.height + LINE_SPACING
+                line_height = obj._layout.height + @lineSpacing
                 obj.position.y = parent_y + offset_from_parent * line_height
 
-            parent.children.forEach alignToNode(parent)
+            parent.children.forEach @alignToNode(parent)
             parent.children.forEach traverse
 
         traverse root
+        return root
 
-        @animateLines root
+    addObjects: (lines_object) =>
+        (root) =>
+            traverse = (node) =>
+                debugger if ! node.line?
+                node._text_object = @getLineObject(node.line)
+                # node._text_object.children.forEach (mesh) ->
+                #     mesh.material.uniforms.opacity.value = 0
+                lines_object.add node._text_object
 
-class LinesVis extends Main
-    constructor: (@scene, @camera, @font, @texture) ->
-        console.info "New LinesVis."
+                node.children.forEach traverse if node.children
 
-    start: (data) ->
-        @_addLines data
+            traverse(root)
+
+    linesToTree = (lines) ->
+        lines = lines.map (line) ->
+            line: line.line
+            word: line.word
+            sIdx: line.sIdx
+            eIdx: line.eIdx
+            children: line.lines
+
+        reducer = (prev, current, index, array) ->
+            prev_index = current.children
+                .map (_) -> _.line
+                .indexOf(prev.line)
+            current.children[prev_index] = prev
+            prev._parent = current
+            current
+
+        lines.reduceRight reducer
 
 class ColocationVis extends Main
     constructor: (@scene, @camera, @font, @texture) ->
@@ -407,6 +379,9 @@ class ColocationVis extends Main
             text_object.rotateX -rotation
             network_object.add text_object
 
+            ################################
+            # ANIMATE COLOCATION NETWORK
+            #
             faded_in = @fadeToArray(1, 1000) text_object.children
 
             if node.children
@@ -425,6 +400,14 @@ class ColocationVis extends Main
                     node.children.forEach traverse
 
         traverse(root)
+
+    setTextObject: (node) =>
+        text_object = @getLineObject(node.val)
+        text_object.children.forEach (mesh) ->
+            mesh.material.uniforms.opacity.value = 0
+        text_object.position.copy(node.position)
+        node._text_object = text_object
+        node
 
     setNetworkPositions = (root, radius) =>
         root.position = new THREE.Vector3()
@@ -513,12 +496,13 @@ class ChainVis extends Main
         chainObject.scale.multiplyScalar(@scaleText)
         @scene.add(chainObject)
 
-        self = @
-
-        reducer = (prev, curr) ->
-            prev.then ->
-                self.fadeToArray(1, 1000) curr.children
-            .then -> self.panCameraToBBox curr, 1000
+        ########################
+        # ANIMATE POETRY CHAIN
+        #
+        reducer = (prev, curr) =>
+            prev.then =>
+                @fadeToArray(1, 1000) curr.children
+            .then => @panCameraToBBox curr, 1000
 
         lineObjects.reduce reducer, Promise.resolve()
 
