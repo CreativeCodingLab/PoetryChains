@@ -54,6 +54,10 @@ module.exports = class Main
         colocationVis = new ColocationVis @scene, @camera, @font, @texture
         colocationVis.start network
 
+    addLines: (lines) =>
+        linesVis = new LinesVis @scene, @camera, @font, @texture
+        linesVis.start lines
+
     setTexture: (@texture) ->
         maxAni = @renderer.getMaxAnisotropy()
 
@@ -73,11 +77,11 @@ module.exports = class Main
     getTextMesh: (geometry) ->
         material = new THREE.ShaderMaterial(Shader({
             map: @texture,
-            smooth: 1/16,
+            smooth: 1/8,
             side: THREE.DoubleSide,
             transparent: true,
             opacity: 0,
-            color: 'rgb(0, 0, 0)'
+            color: 'rgb(10, 10, 10)'
         }))
         mesh = new THREE.Mesh(geometry, material)
         mesh
@@ -337,7 +341,7 @@ module.exports = class Main
                     traverse next_child unless ! next_child?
 
 
-    addLines: (lines) =>
+    _addLines: (lines) =>
         lines_object = new THREE.Object3D()
         lines_object.scale.multiplyScalar(SCALE_TEXT)
         lines_object.updateMatrixWorld(true)
@@ -368,6 +372,13 @@ module.exports = class Main
         traverse root
 
         @animateLines root
+
+class LinesVis extends Main
+    constructor: (@scene, @camera, @font, @texture) ->
+        console.info "New LinesVis."
+
+    start: (data) ->
+        @_addLines data
 
 class ColocationVis extends Main
     constructor: (@scene, @camera, @font, @texture) ->

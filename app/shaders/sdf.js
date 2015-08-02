@@ -14,11 +14,9 @@ module.exports = function(opt) {
     },
     vertexShader: [
       "attribute float page;",
-      "varying vec2 vUv;",
-    //   "varying float vPage;",
+      "varying vec2 vUv;",,
       "void main() {",
         "vUv = uv;",
-        // "vPage = page;",
         "gl_Position = projectionMatrix * modelViewMatrix * vec4( position.xyz, 1.0 );",
       "}"
     ].join("\n"),
@@ -34,12 +32,15 @@ module.exports = function(opt) {
       "void main() {",
         "vec4 texColor = texture2D(map, vUv);",
         "float dst = texColor.a;",
+        // "if (dst < 0.1) { discard; }",
         "float afwidth = smooth * SQRT2 / (2.0 * gl_FragCoord.w);",
         "float alpha = smoothstep(0.5 - afwidth, 0.5 + afwidth, dst);",
-
-        "gl_FragColor = vec4(color, opacity * alpha);",
+        "float _alpha = opacity * alpha;",
+        "vec4 _color = vec4(color, _alpha);",
+        "if (dst < 0.05) { _color = vec4(1,1,1,opacity); }",
+        "gl_FragColor = _color;",
         "vec4 diffuseColor = gl_FragColor;",
-        THREE.ShaderChunk["alphatest_fragment"],
+        // THREE.ShaderChunk["alphatest_fragment"],
       "}"
     ].join("\n"),
     defines: {
