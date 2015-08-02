@@ -100,11 +100,11 @@ public class LineMaker {
       line = LineMaker.randomElements(lines, 1).get(0);
 
       if (OUTPUT_JSON) {
-        //System.out.print("\t{\n\t\t\"line\":\"" + line.text + "\",\n");
-        System.out.print("\t{\n\t\t\"line\":\"" + removePuncationAndCapitals(line) + "\",\n");
+        System.out.print("\t{\n\t\t\"line\":\"" + line.text + "\",\n");
+        //System.out.print("\t{\n\t\t\"line\":\"" + removePuncationAndCapitals(line) + "\",\n");
       } else {
-        //System.out.println("line = " + line.text);
-        System.out.println("line = " + removePuncationAndCapitals(line));
+        System.out.println("line = " + line.text);
+        //System.out.println("line = " + removePuncationAndCapitals(line));
 
       }
 
@@ -121,6 +121,15 @@ public class LineMaker {
 
           if (OUTPUT_JSON) {
             System.out.print("\t\t\"word\":\"" + word + "\",\n");
+
+            int sIdx = line.calcStartIndexOfWordInLine(word);
+            int eIdx = line.calcEndIndexOfWordInLine(word);
+
+    System.out.print("\t\t\"sIdx\":\"" + sIdx + "\",\n");
+    System.out.print("\t\t\"eIdx\":\"" + eIdx + "\",\n");
+
+
+
           } else {
             System.out.println("word = " + word);
           }
@@ -141,9 +150,12 @@ public class LineMaker {
 
         Line l = lines.get(j);
 
+        int sIdx = l.calcStartIndexOfWordInLine(word);
+        int eIdx = l.calcEndIndexOfWordInLine(word);
+
         if (OUTPUT_JSON) {
-          //System.out.print("\t\t\t\"" + l.text + "\"");
-          System.out.print("\t\t\t\"" + removePuncationAndCapitals(l) + "\"");
+          System.out.print("\t\t\t{\"line\":\"" + l.text + "\",\"sIdx\":"+sIdx+",\"eIdx\":"+eIdx+"}");
+          //System.out.print("\t\t\t\"" + removePuncationAndCapitals(l) + "\"");
           
           if (j < lines.size() - 1) {
             System.out.print(",\n");
