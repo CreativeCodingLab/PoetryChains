@@ -264,26 +264,25 @@ module.exports = class Main
                             mesh.material.uniforms.opacity.value = i(t)
                     .each "end", resolve
 
+    addFadeOpacityTransition = (to, duration, target) ->
+        (selection) ->
+            selection.transition()
+                .duration duration
+                .delay (_, i) -> i * 10
+                .tween "fadeOpacity", ->
+                    # if target? then debugger
+                    obj = target || this
+                    from = obj.material.uniforms.opacity.value
+                    i = d3.interpolate from, to
+                    (t) ->
+                        obj.material.uniforms.opacity.value = i(t)
+
     fadeToArray = (to, duration) ->
         (array) ->
             new Promise (resolve) ->
-                d3.selectAll array
-                    .transition()
-                    .duration duration
-                    .delay (_, i) -> i * 10
-                    .tween "fadeOpacity", ->
-                        from = this.material.uniforms.opacity.value
-                        i = d3.interpolate from, to
-                        (t) ->
-                            this.material.uniforms.opacity.value = i(t)
+                selection = d3.selectAll array
+                addFadeOpacityTransition(to, 1000)(selection)
                     .each "end", resolve
-
-    fadeOpacityTween = (to) ->
-        ->
-            from = this.material.uniforms.opacity.value
-            i = d3.interpolate from, to
-            (t) ->
-                this.material.uniforms.opacity.value = i(t)
 
     getFadeLettersPromise = (to, duration) ->
         (text_object) ->
@@ -292,11 +291,6 @@ module.exports = class Main
                     .transition()
                     .duration duration
                     .tween "fadeOpacity", fadeOpacityTween(to)
-                    # .tween "fadeOpacity", ->
-                    #     from = this.material.uniforms.opacity.value
-                    #     i = d3.interpolate from, to
-                    #     (t) ->
-                    #         this.material.uniforms.opacity.value = i(t)
                     .each "end", resolve
 
 
@@ -442,15 +436,25 @@ module.exports = class Main
         end = begin + word.length
         text_object.children.slice begin, end
 
-    chainedFadeIn: (children, target_child, duration) ->
-        # transition = (prev, curr, index, array) ->
-        #     prev.transition()
-        #         .duration duration
-        #         .tween "fadeOpacity", ->
-        #             from = this.material.uniforms.opacity.value
-        #             i = d3.interpolate from, to
-        #             (t) ->
-        #                 this.material.uniforms.opacity.value = i(t)
+    chainedFadeIn: (array, duration) ->
+        reduction = (promise, curr, index, array) ->
+            promise.then ->
+                # debugger
+                fadeToArray(1, 1000) curr._text_object.children
+            # addFadeOpacityTransition(1, 1000, curr._text_object)(prev)
+            # prev.transition()
+            #     .call (t) ->
+            #         d3.select curr._text_object
+                # .duration duration
+                # # .tween "fadeOpacity", fadeOpacityTween(1, curr._text_object)
+                # .tween "fadeOpacity", ->
+                #     obj = curr._text_object
+                #     from = obj.material.uniforms.opacity.value
+                #     i = d3.interpolate from, to
+                #     (t) ->
+                #         obj.material.uniforms.opacity.value = i(t)
+        # transition = array.reduce reduction, d3.transition().duration(0)
+        promise = array.reduce reduction, Promise.resolve()
 
     animateLines: (root) =>
 
@@ -463,6 +467,7 @@ module.exports = class Main
 
             next_child = node.children.filter((_) -> _.children?)[0]
 
+            # Start promise chain
             Promise.resolve()
                 .then =>
                     # Fade out siblings
@@ -472,23 +477,26 @@ module.exports = class Main
                         parent = node._parent
                         promises = siblings.concat(parent).map (child) ->
                                 fadeToArray(0, 1000) child._text_object.children
-                        Promise.all promises
+                        return Promise.all promises
                     return true
                 .then =>
                     # Fade in children
                     if node.children?
                         promises = node.children.map (child) =>
-
                             # Get the array of letters for the target word only
                             children = @getWordObjects child._text_object, node.word
-
-                            # The fade functions expect a "children" property
-                            # fadeTo(1, 1000) children: word
                             fadeToArray(1, 1000) children
                         return Promise.all promises
                 .then =>
                     if next_child?
-                        @chainedFadeIn node.children, next_child
+                        pos = node._positions_array
+                        curr = pos.indexOf(node) + 1
+                        next = pos.indexOf(next_child) + 1
+                        if curr < next
+                            fade_array = pos.slice curr, next
+                        else
+                            fade_array = pos.slice(next, curr).reverse()
+                        @chainedFadeIn fade_array, 1000
                 .then =>
                     if next_child?
                         fadeToArray(1, 1000) next_child._text_object.children
@@ -514,6 +522,8 @@ module.exports = class Main
             parent_index = positions_array.indexOf parent
             parent_y = parent._text_object.position.y
 
+            parent._positions_array = positions_array
+
             positions_array.forEach (node, index) =>
                 offset_from_parent = index - parent_index
                 obj = node._text_object
@@ -521,7 +531,6 @@ module.exports = class Main
                 obj.position.y = parent_y + offset_from_parent * line_height
 
             parent.children.forEach alignToNode(parent)
-
             parent.children.forEach traverse
 
         traverse root
@@ -535,6 +544,24 @@ class Test extends Main
 
     foo: ->
         console.log @camera.position
+
+# .transition()
+# .duration duration
+# .delay (_, i) -> i * 10
+# # .tween "fadeOpacity", ->
+# #     fadeOpacityTween.bind(this)(1)
+# .tween "fadeOpacity", ->
+#     from = this.material.uniforms.opacity.value
+#     i = d3.interpolate from, to
+#     (t) ->
+#         this.material.uniforms.opacity.value = i(t)
+# .each "end", resolve
+
+# fadeOpacityTween = (to, obj) ->
+#     from = this.material.uniforms.opacity.value
+#     i = d3.interpolate from, to
+#     (t) ->
+#         this.material.uniforms.opacity.value = i(t)
 
 # addBBox = (node) =>
 #     bbox = new THREE.BoundingBoxHelper( node._text_object, 0xff0000 )
