@@ -41,7 +41,7 @@ chainMode = ->
     console.info "Starting Chain Mode."
     getJson "get-chain.json", "Requesting poetry chain..."
         .then (d) ->
-            vis.addChain d[0]
+            vis._addChain d[0]
 
 colocationMode = ->
     console.info "Starting Colocation Mode."

@@ -119,6 +119,10 @@ module.exports = class Main
         line
 
     addChain: (text) =>
+        chainVis = new ChainVis @scene, @camera, @font, @texture
+        chainVis.start text
+
+    _addChain: (text) =>
         lineObjects = processChain(text)
             .map (line, index) =>
                 lineObject = @getLineObject(line.line, index)
@@ -133,7 +137,9 @@ module.exports = class Main
         chainObject.scale.multiplyScalar(SCALE_TEXT)
         @scene.add(chainObject)
 
-        _pan = @panCameraTo
+        console.log this
+
+        _pan = @panCameraToBBox
 
         d3.selectAll(lineObjects).transition()
             .duration FADE_DURATION
@@ -144,7 +150,7 @@ module.exports = class Main
                 (t) -> this.children.forEach (mesh) ->
                     mesh.material.uniforms.opacity.value = i(t)
             .each "end", ->
-                _pan(this)
+                _pan(this, 1000)
 
     getRadians = (a, b) ->
         dx = a.position.x - b.position.x
@@ -212,7 +218,7 @@ module.exports = class Main
     panCameraToPosition: (target, duration) =>
         new Promise (resolve) =>
             d3.transition()
-                .duration duration
+                .duration duration || 1000
                 .tween "moveCamera", =>
                     current = @camera.position
                     x = d3.interpolate(current.x, target.x)
@@ -225,7 +231,10 @@ module.exports = class Main
     panCameraToBBox: (object, duration) =>
         bbox = new THREE.BoundingBoxHelper( object, 0xff0000 )
         do bbox.update
-        @panCameraToPosition bbox.box.center(), 1000
+
+        console.log @
+
+        @panCameraToPosition bbox.box.center(), duration
 
     zoomCameraToPosition: (target, duration) =>
         new Promise (resolve) =>
@@ -344,7 +353,7 @@ module.exports = class Main
 
             if node.children
                 faded_in.then =>
-                    @panCameraTo(text_object)
+                    @panCameraToBBox(text_object)
                 .then ->
                     if node.parent?
                         siblings = node.parent.children.filter (child) ->
@@ -441,19 +450,7 @@ module.exports = class Main
             promise.then ->
                 # debugger
                 fadeToArray(1, 1000) curr._text_object.children
-            # addFadeOpacityTransition(1, 1000, curr._text_object)(prev)
-            # prev.transition()
-            #     .call (t) ->
-            #         d3.select curr._text_object
-                # .duration duration
-                # # .tween "fadeOpacity", fadeOpacityTween(1, curr._text_object)
-                # .tween "fadeOpacity", ->
-                #     obj = curr._text_object
-                #     from = obj.material.uniforms.opacity.value
-                #     i = d3.interpolate from, to
-                #     (t) ->
-                #         obj.material.uniforms.opacity.value = i(t)
-        # transition = array.reduce reduction, d3.transition().duration(0)
+
         promise = array.reduce reduction, Promise.resolve()
 
     animateLines: (root) =>
@@ -544,6 +541,28 @@ class Test extends Main
 
     foo: ->
         console.log @camera.position
+
+class ChainVis extends Main
+    constructor: (@scene, @camera, @font, @texture) ->
+        console.info "New ChainVis."
+
+    start: (data) =>
+        console.log this
+        @_addChain data
+
+# addFadeOpacityTransition(1, 1000, curr._text_object)(prev)
+# prev.transition()
+#     .call (t) ->
+#         d3.select curr._text_object
+# .duration duration
+# # .tween "fadeOpacity", fadeOpacityTween(1, curr._text_object)
+# .tween "fadeOpacity", ->
+#     obj = curr._text_object
+#     from = obj.material.uniforms.opacity.value
+#     i = d3.interpolate from, to
+#     (t) ->
+#         obj.material.uniforms.opacity.value = i(t)
+# transition = array.reduce reduction, d3.transition().duration(0)
 
 # .transition()
 # .duration duration
