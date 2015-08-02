@@ -25,6 +25,45 @@ public class Line
     words.add(word);
   }
 
+  public int calcStartIndexOfWordInLine(Word w) {
+    int idx = 0;
+    for (Word word : words) {
+      //word.printWord();
+
+      if (word.equals(w)) {
+        //System.out.println("\nfound " + w.word + ", startIdx = " + idx);
+        return idx;
+      }
+
+      idx+=word.word.length();
+      idx++; //handle the space
+    }
+
+    System.out.println("ERROR: never found the word: " + w.word);
+
+    return -1;
+  }
+
+  public int calcEndIndexOfWordInLine(Word w) {
+    int idx = 0;
+    for (Word word : words) {
+      //word.printWord();
+
+      if (word.equals(w)) {
+        //System.out.println("\nfound " + w.word + ", endIdx = " + (idx+word.word.length()));
+        return idx+word.word.length();
+      }
+
+      idx+=word.word.length();
+      idx++; //handle the space
+    }
+
+    System.out.println("ERROR: never found the word: " + w.word);
+
+    return -1;
+  }
+
+
   public void printLine()
   {
     for (Word word : words)
@@ -33,7 +72,7 @@ public class Line
     }
     System.out.print("");
   }
-  
+
   public void printLineEscaped()
   {
     for (Word word : words)
