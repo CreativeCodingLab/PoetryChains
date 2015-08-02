@@ -15,10 +15,10 @@ module.exports = function(opt) {
     vertexShader: [
       "attribute float page;",
       "varying vec2 vUv;",
-      "varying float vPage;",
+    //   "varying float vPage;",
       "void main() {",
         "vUv = uv;",
-        "vPage = page;",
+        // "vPage = page;",
         "gl_Position = projectionMatrix * modelViewMatrix * vec4( position.xyz, 1.0 );",
       "}"
     ].join("\n"),

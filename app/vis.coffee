@@ -77,7 +77,7 @@ module.exports = class Main
             side: THREE.DoubleSide,
             transparent: true,
             opacity: 0,
-            color: 'rgb(10, 10, 10)'
+            color: 'rgb(0, 0, 0)'
         }))
         mesh = new THREE.Mesh(geometry, material)
         mesh
@@ -196,28 +196,6 @@ module.exports = class Main
                     .tween "fadeOpacity", fadeOpacityTween(to)
                     .each "end", resolve
 
-
-    fade = (from, to, duration) ->
-        (text_object) ->
-            i = d3.interpolate from, to
-            getFadePromise(i, duration)(text_object)
-
-    fadeTo = (to, duration) ->
-        (text_object) ->
-            current = if text_object.children[0]?
-                text_object.children[0].material.uniforms.opacity.value
-            else 0
-            i = d3.interpolate current, to
-            getFadePromise(i, duration) text_object
-
-    fadeOut = (text_object) ->
-        i = d3.interpolate(0.5, 0)
-        getFadePromise(i)(text_object)
-
-    fadeIn = (text_object) ->
-        i = d3.interpolate(0, 0.5)
-        getFadePromise(i)(text_object)
-
     setTextObject: (node) =>
         text_object = @getLineObject(node.val)
         text_object.children.forEach (mesh) ->
@@ -306,7 +284,6 @@ module.exports = class Main
     chainedFadeIn: (array, duration) ->
         reduction = (promise, curr, index, array) ->
             promise.then ->
-                # debugger
                 fadeToArray(1, 1000) curr._text_object.children
 
         promise = array.reduce reduction, Promise.resolve()
@@ -527,16 +504,12 @@ class ChainVis extends Main
 
         self = @
 
-        d3.selectAll(lineObjects).transition()
-            .duration(3000 * @speedMultiplier)
-            .delay((_,i) => i * 5000 * @speedMultiplier)
-            .ease "poly", 5
-            .tween "fadeOpacity", ->
-                i = d3.interpolate(0,0.5)
-                (t) -> this.children.forEach (mesh) ->
-                    mesh.material.uniforms.opacity.value = i(t)
-            .each "end", ->
-                self.panCameraToBBox(this, 1000)
+        reducer = (prev, curr) ->
+            prev.then ->
+                self.fadeToArray(1, 1000) curr.children
+            .then -> self.panCameraToBBox curr, 1000
+
+        lineObjects.reduce reducer, Promise.resolve()
 
     positionLines = (line, index, array) =>
         return line if index is 0
