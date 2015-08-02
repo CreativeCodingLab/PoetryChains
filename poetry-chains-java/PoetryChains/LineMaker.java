@@ -112,7 +112,7 @@ System.out.println("w = " + w);
 
   private static void makeLines() {
   
-  testMe();
+ // testMe();
   
     Set<Line> uniquelist;
     List<Line> lines;
@@ -133,11 +133,11 @@ System.out.println("w = " + w);
       line = LineMaker.randomElements(lines, 1).get(0);
 
       if (OUTPUT_JSON) {
-        System.out.print("\t{\n\t\t\"line\":\"" + line.text + "\",\n");
-        //System.out.print("\t{\n\t\t\"line\":\"" + removePuncationAndCapitals(line) + "\",\n");
+        //System.out.print("\t{\n\t\t\"line\":\"" + line.text + "\",\n");
+        System.out.print("\t{\n\t\t\"line\":\"" + removePuncationAndCapitals(line) + "\",\n");
       } else {
-        System.out.println("line = " + line.text);
-        //System.out.println("line = " + removePuncationAndCapitals(line));
+        //System.out.println("line = " + line.text);
+        System.out.println("line = " + removePuncationAndCapitals(line));
 
       }
 
@@ -187,8 +187,9 @@ System.out.println("w = " + w);
         int eIdx = l.calcEndIndexOfWordInLine(word);
 
         if (OUTPUT_JSON) {
-          System.out.print("\t\t\t{\"line\":\"" + l.text + "\",\"sIdx\":"+sIdx+",\"eIdx\":"+eIdx+"}");
-          //System.out.print("\t\t\t\"" + removePuncationAndCapitals(l) + "\"");
+          //System.out.print("\t\t\t{\"line\":\"" + l.text + "\",\"sIdx\":"+sIdx+",\"eIdx\":"+eIdx+"}");
+          System.out.print("\t\t\t{\"line\":\"" + removePuncationAndCapitals(l) + "\",\"sIdx\":"+sIdx+",\"eIdx\":"+eIdx+"}");
+          ///System.out.print("\t\t\t\"" + removePuncationAndCapitals(l) + "\"");
           
           if (j < lines.size() - 1) {
             System.out.print(",\n");
