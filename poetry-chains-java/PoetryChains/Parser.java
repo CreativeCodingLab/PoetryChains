@@ -35,10 +35,39 @@ public class Parser
     word.printCollocationsRank();
   }
 
+  
   public static List<PoetryChain> connectWords(int minDepth, int maxDepth, int numChains)
-  {
+  { 
     List<PoetryChain> chains = new ArrayList<PoetryChain>();
     Word r1 = Utils.randomElement(words.values());
+    Word r2 = Utils.randomElement(words.values());
+
+    for (int i = 0; i < numChains; i++)
+    {
+      PoetryChain chain = connectWords(r1.word, r2.word, minDepth, maxDepth);
+
+      while (chain == null) {
+          // Try to find a new chain with a new r2
+          r2 = Utils.randomElement(words.values());
+          chain = connectWords(r1.word, r2.word, minDepth, maxDepth);
+      }
+
+      chain.first(r1);
+      chain.last(r2);
+      chains.add(chain);
+
+      r1 = r2;
+      r2 = Utils.randomElement(words.values());
+    }
+
+    return chains;
+  }
+
+
+  public static List<PoetryChain> connectWords(Word sw, int minDepth, int maxDepth, int numChains)
+  { 
+    List<PoetryChain> chains = new ArrayList<PoetryChain>();
+    Word r1 = sw;
     Word r2 = Utils.randomElement(words.values());
 
     for (int i = 0; i < numChains; i++)

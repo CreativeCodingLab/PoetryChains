@@ -12,8 +12,7 @@ public class ChainMaker {
 
   public Word lastSelected = null;
 
-  public static void main(String[] args)
-  {
+  public static void main(String[] args) {
 
     int NUM_LINES = 2000000;
 
@@ -32,25 +31,37 @@ public class ChainMaker {
 
     //Parser.printCollocation("my");
 
-    System.err.println("TOTAL NUMBER WORDS = " + Parser.rankedWords.size());
+    //System.err.println("TOTAL NUMBER WORDS = " + Parser.rankedWords.size());
 
     //A
-    makeChains();
+    if (args.length == 0) {
+      makeChains(null);
+    } else {
+      System.out.println("Seeding PoetryChain:Chain with " + args[0]);
+      Word sw = Parser.words.get(args[0]);
 
-    //or, B
-    //Word word = Utils.randomElement(Parser.rankedWords, 10000, 18000); //get a low frequency word
-    //makeNets(word, 10); 
+      if (sw != null) {
+        makeChains(sw);
+      } else {
+        makeChains(null);
+      }
+    }
+
     
   }
 
-  private static void makeChains()
+  private static void makeChains(Word startWord)
   {
-    List<PoetryChain> chains = Parser.connectWords(5, 10, 10);
-
+    List<PoetryChain> chains;
+    if (startWord == null) {
+      chains = Parser.connectWords(5, 10, 10);
+    } else {
+      chains = Parser.connectWords(startWord, 5, 10, 10);
+    }
     if (OUTPUT_JSON) {
-      
+
       System.out.print("[\n");
-  
+
       //OUTPUT JSON
       for (int i = 0; i < chains.size(); i++) {
         PoetryChain chain = chains.get(i);
@@ -59,22 +70,18 @@ public class ChainMaker {
           System.out.print(",\n");
         }
       }
-      
+
       System.out.print("]\n");
-
       System.out.print("\n");
-  
-    } else {
 
+    } else {
 
       //OUTPUT POEM
       for (PoetryChain chain : chains) {
         chain.printChain();
         System.out.print("\n\n");
       }
-
     }
-
 
   }
 
@@ -120,7 +127,7 @@ public class ChainMaker {
           System.out.print(",\n");
         }
       } else {
-          System.out.print("\n");
+        System.out.print("\n");
       }
 
       w = Utils.randomElement(colos);
