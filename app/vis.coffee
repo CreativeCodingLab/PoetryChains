@@ -255,6 +255,7 @@ class LinesVis extends Main
   #
   animateLines: (root) =>
     # Fade in the root
+    @lines_object.add root._text_object
     @fadeToArray(1, 1000) root._text_object.children
     @panCameraToObject root._text_object
         .then -> traverse root
@@ -274,12 +275,14 @@ class LinesVis extends Main
             parent = node._parent
             promises = siblings.concat(parent).map (child) =>
               @fadeToArray(0, 1000) child._text_object.children
+                .then => @lines_object.remove child._text_object
             return Promise.all promises
           return true
         .then =>
           # Fade in children
           if next_child?
             promises = node.children.map (child) =>
+              @lines_object.add child._text_object
               # Get the array of letters for the target word only
               children = @getLetterObjectsForWord child._text_object, node.word
               @fadeToArray(1, 1000) children
@@ -307,6 +310,8 @@ class LinesVis extends Main
     lines_object.scale.multiplyScalar(@scaleText)
     lines_object.updateMatrixWorld(true)
     @scene.add lines_object
+
+    @lines_object = lines_object
 
     root = linesToTree lines
 
@@ -336,11 +341,8 @@ class LinesVis extends Main
   addObjects: (lines_object) =>
     (root) =>
       traverse = (node) =>
-        # debugger if ! node.line?
         node._text_object = @getLineObject(node.line)
-        # node._text_object.children.forEach (mesh) ->
-        #     mesh.material.uniforms.opacity.value = 0
-        lines_object.add node._text_object
+        # lines_object.add node._text_object
 
         node.children.forEach traverse if node.children
 
