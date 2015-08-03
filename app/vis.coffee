@@ -195,6 +195,7 @@ module.exports = class Main
         .range([0, Math.PI * 2])
 
     getZoomDistanceFromBox: (box, distance_scale) ->
+        # Calculate horizontal field of view
         # See: github.com/mrdoob/three.js/issues/1239
         v_fov = _radianScale @camera.fov
         h_fov = Math.atan( Math.tan(v_fov/2) * @camera.aspect )
@@ -202,23 +203,6 @@ module.exports = class Main
         # See: stackoverflow.com/questions/2866350/move-camera-to-fit-3d-scene
         width = Math.abs(box.min.x - box.max.x)
         return -(width / 2) / Math.tan(h_fov) * distance_scale
-
-    # zoomToBoundingBoxWidth: (box, duration) ->
-    #     width = Math.abs(box.min.x - box.max.x)
-    #
-    #     distance_scale = 1.2
-    #
-    #     v_fov = _radianScale @camera.fov
-    #
-    #     # See: github.com/mrdoob/three.js/issues/1239
-    #     h_fov = Math.atan( Math.tan(v_fov/2) * @camera.aspect )
-    #
-    #     # See: stackoverflow.com/questions/2866350/move-camera-to-fit-3d-scene
-    #     distance = (width / 2) / Math.tan(h_fov) * distance_scale
-    #
-    #     target = new THREE.Vector3(0, 0, - distance)
-    #
-    #     @zoomCameraToPosition target, duration
 
     getWordIndex = (line, word) ->
         expression = if word is "—" then word else "\\b#{word}\\b"
