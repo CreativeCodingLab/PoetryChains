@@ -483,7 +483,7 @@ class ChainVis extends Main
         @_addChain data
 
     _addChain: (text) =>
-        lineObjects = processChain(text)
+        lineObjects = @processChain(text)
             .map (line, index) =>
                 lineObject = @getLineObject(line.line, index)
                 height = lineObject._layout.height
@@ -495,17 +495,26 @@ class ChainVis extends Main
         chainObject = new THREE.Object3D()
         chainObject.add.apply(chainObject, lineObjects)
         chainObject.scale.multiplyScalar(@scaleText)
+
+        # NOTE: Adding all objects at once – not efficient!
         @scene.add(chainObject)
 
         ########################
         # ANIMATE POETRY CHAIN
-        #
+
+        # Fade in first line
+        # first = @fadeToArray(1, 1000) lineObjects[0].children
+        first = Promise.resolve()
+
+        # lineObjects.reduce reducer, Promise.resolve()
+
         reducer = (prev, curr) =>
             prev.then =>
+                console.log curr._line.connector
                 @fadeToArray(1, 1000) curr.children
             .then => @panCameraToBBox curr, 1000
 
-        lineObjects.reduce reducer, Promise.resolve()
+        lineObjects.reduce reducer, first
 
     positionLines = (line, index, array) =>
         return line if index is 0
@@ -519,13 +528,14 @@ class ChainVis extends Main
         line.position.x -= line.children[my_prev_connector_idx].position.x
         line
 
-    processChain = (chain) ->
-        chain.map (obj, i, array) ->
+    processChain: (chain) ->
+        chain.map (obj, i, array) =>
             obj.connector_index = obj.line.indexOf obj.connector
             if i > 0
                 prev = array[i-1]
                 prev_con = prev.connector
-                my_prev_idx = obj.line.indexOf prev_con
+                # my_prev_idx = obj.line.indexOf prev_con
+                my_prev_idx = @getWordIndex obj.line, prev_con
                 prev_idx = prev.connector_index
                 obj.prev_connector = prev_con
                 obj.my_prev_connector_index = my_prev_idx
