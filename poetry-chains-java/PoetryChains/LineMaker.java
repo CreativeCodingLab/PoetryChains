@@ -8,8 +8,8 @@ import java.util.*;
 public class LineMaker {
 
   static boolean OUTPUT_JSON = true;
-  static int MAX_LINES = 10; //max collocated lines per iteration
-  static int NUM_LINES = 5; //num iterations
+  static int MAX_LINES = 20; //max collocated lines per iteration
+  static int NUM_LINES = 25; //num iterations
 
   public Word lastSelected = null;
 

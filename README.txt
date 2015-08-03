@@ -22,5 +22,10 @@ http://localhost:8888/#lines
 http://localhost:8888/#chain
 
 
+***
 
+
+Angus - make it so each Java program can be started with a arg - that is a
+word to start it, so that Paul can seed the vis with a word from the previous
+vis.
 
