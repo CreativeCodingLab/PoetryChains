@@ -3,7 +3,9 @@ path = require("path")
 Promise = require("promise")
 
 replaceEmDash = (text) ->
-    text.replace(/--/g, "—")
+    # Fix mysterious appearance of Unicode U+2294: SQUARE CUP
+    text = text.replace /⊔/g, "—"
+    text = text.replace /--/g, "—"
 
 runScript = (scriptPath) ->
     java_directory = path.resolve(__dirname, "PoetryChains")
@@ -13,7 +15,7 @@ runScript = (scriptPath) ->
         childProcess.exec(command, (error, stdout, stderr) ->
             reject(error) if (error)
             stdout = replaceEmDash stdout
-            # console.log stdout
+            console.log stdout
             json = JSON.parse(stdout)
             resolve json
         )

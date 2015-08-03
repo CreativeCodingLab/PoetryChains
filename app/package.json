@@ -1,5 +1,7 @@
 {
   "private": true,
+  "name": "poetry-vis",
+  "version": "1.0.0",
   "dependencies": {
     "d3": "^3.5.6",
     "three": "^0.71.0",

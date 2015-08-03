@@ -6,8 +6,8 @@ vis = new Vis()
 do ->
     font_loaded = new Promise (resolve) ->
         require('./load')(
-            font: "fnt/Palatino-Linotype.fnt",
-            image: "fnt/Palatino-Linotype.png"
+            font: "fnt/palatino.fnt",
+            image: "fnt/palatino.png"
         , (font, texture) -> resolve({ font: font, texture: texture }))
 
     font_loaded.then (obj) ->

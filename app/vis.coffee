@@ -104,7 +104,10 @@ module.exports = class Main
         line_layout = line_geometry.layout
         glyph_positions = line_layout.glyphs.map (g) -> g.position
 
+        assert line?
+
         letterObjects = line.split("").map (letter, index) =>
+            assert glyph_positions[index], "#{line} -- #{glyph_positions}"
             letter_mesh = @getMeshFromString letter
             letter_mesh.position.x = - glyph_positions[index][0]
             letter_mesh
@@ -203,10 +206,8 @@ module.exports = class Main
         (child) ->
             parent_x = parent._text_object.position.x
             word = parent.word
-            # regex = new RegExp("\\b#{word}\\b", "i")
             offset = [ parent, child ]
                 .map (_) ->
-                    # idx = _.line.search regex
                     idx = getWordIndex _.line, word
                     assert idx isnt -1, "#{_.line}, #{word}"
                     _._text_object.children[idx].position.x

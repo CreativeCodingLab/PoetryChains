@@ -103,7 +103,7 @@ public class Parser
         Collections.reverse(path);
         Collections.reverse(connectors);
       }
-      
+
       if (found == true)
       {
         // System.out.println("\n...it took " + i + "times");
@@ -373,11 +373,11 @@ public class Parser
 
 	    //MAKE LOWER CASE
       String wordStr = wordScanner.next().toLowerCase().trim();
-      
-      //KEEP ORIGINAL CASE	
+
+      //KEEP ORIGINAL CASE
       //String wordStr = wordScanner.next().trim();
-      
-     	 
+
+
       if (!wordStr.equals("--"))
       {
 	      //REMOVE PUNCTUATION
@@ -418,7 +418,7 @@ public class Parser
       }
     }
   }
-  
+
   public static void collocateWords(Word word, List<Word> collocations)
   {
     boolean addSelfAsCollocate = false;
