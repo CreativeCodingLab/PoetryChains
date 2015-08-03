@@ -21,28 +21,22 @@ public class LineMaker {
     //1. LOAD STUFF IN AND DO INITIAL ANALYSIS
     Parser.loadInPoems(new File("EmilyDickinsonPoems.txt"), NUM_LINES);
     Parser.rankWords();
-    //Parser.rankLines();
 
-    //Parser.printPoems();
-    //Parser.printWordRank(1, 10);
-    //Parser.printLineRank(3900, 5000);
+    if (args.length == 0) {
+      makeLines(null);
+    } else {
+      System.out.println("Seeding PoetryChain:Lines with " + args[0]);
+      Word sw = Parser.words.get(args[0]);
 
-    // PoetryChain pc = Parser.connectWords("eye", "eyes", 8,8);
-    // pc.printChain();
-    //Parser.printPoems();
+      if (sw != null) {
+        Line seedLine = LineMaker.randomElements(sw.lines, 1).get(0);
+        makeLines(seedLine);
+      } else {
+        makeLines(null);
+      }
+    }
 
-    //Parser.printCollocation("my");
 
-    System.err.println("TOTAL NUMBER WORDS = " + Parser.rankedWords.size());
-
-    //A
-    //makeChains();
-
-    //or, B
-    //Word word = Utils.randomElement(Parser.rankedWords, 10000, 18000); //get a low frequency word
-    //makeNets(word, 10);
-
-    makeLines();
   }
 
 
@@ -110,7 +104,7 @@ System.out.println("w = " + w);
 
 }
 
-  private static void makeLines() {
+  private static void makeLines(Line seedLine) {
 
     Set<Line> uniquelist;
     List<Line> lines;
@@ -128,8 +122,11 @@ System.out.println("w = " + w);
 
     for (int i = 0; i < NUM_LINES; i++) {
       //1. grab a line at random
-      line = LineMaker.randomElements(lines, 1).get(0);
-
+      if (i == 0 && seedLine != null) {
+        line = seedLine;
+      } else {
+        line = LineMaker.randomElements(lines, 1).get(0);
+      }
       if (OUTPUT_JSON) {
 
         // System.out.print("\t{\n\t\t\"line\":\"" + line.text.replaceAll("\"", "\\\\\"") + "\",\n");

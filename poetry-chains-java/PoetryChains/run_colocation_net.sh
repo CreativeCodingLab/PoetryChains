@@ -1,1 +1,1 @@
-java -cp .:behaviorism.jar:google-collect-1.0.jar NetMaker
+java -cp .:behaviorism.jar:google-collect-1.0.jar NetMaker $1

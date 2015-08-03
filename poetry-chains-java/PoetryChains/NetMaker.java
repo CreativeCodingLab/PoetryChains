@@ -20,64 +20,26 @@ public class NetMaker {
     //1. LOAD STUFF IN AND DO INITIAL ANALYSIS
     Parser.loadInPoems(new File("EmilyDickinsonPoems.txt"), NUM_LINES);
     Parser.rankWords();
-    //Parser.rankLines();
 
-    //Parser.printPoems();
-    //Parser.printWordRank(1, 10);
-    //Parser.printLineRank(3900, 5000);
-
-    // PoetryChain pc = Parser.connectWords("eye", "eyes", 8,8);
-    // pc.printChain();
-    //Parser.printPoems();
-
-    //Parser.printCollocation("my");
-
-    System.err.println("TOTAL NUMBER WORDS = " + Parser.rankedWords.size());
-
-    //A
-    // makeChains();
-
-    //or, B
-    Word word = Utils.randomElement(Parser.rankedWords, 10000, 18000); //get a low frequency word
-    makeNets(word, 10);
-
-  }
-
-  private static void makeChains()
-  {
-    List<PoetryChain> chains = Parser.connectWords(5, 10, 10);
-
-    if (OUTPUT_JSON) {
-
-      System.out.print("[\n");
-
-      //OUTPUT JSON
-      for (int i = 0; i < chains.size(); i++) {
-        PoetryChain chain = chains.get(i);
-        chain.printChainJSON();
-        if (i < chains.size() - 1) {
-          System.out.print(",\n");
-        }
-      }
-
-      System.out.print("]\n");
-
-      System.out.print("\n");
-
+    Word word;
+    if (args.length == 0) {
+      word = Utils.randomElement(Parser.rankedWords, 10000, 18000); //get a low frequency word
+      makeNets(word, 10);
     } else {
+      System.out.println("Seeding PoetryChain:ColocationNets with " + args[0]);
+      word = Parser.words.get(args[0]);
 
+      if (word != null) {
+        makeNets(word, 10);
 
-      //OUTPUT POEM
-      for (PoetryChain chain : chains) {
-        chain.printChain();
-        System.out.print("\n\n");
+      } else {
+        word = Utils.randomElement(Parser.rankedWords, 10000, 18000); //get a low frequency word
+        makeNets(word, 10);
       }
-
     }
 
 
   }
-
 
   public static void makeNets(final Word word, int numberOfNets)
   {
@@ -120,7 +82,7 @@ public class NetMaker {
           System.out.print(",\n");
         }
       } else {
-          System.out.print("\n");
+        System.out.print("\n");
       }
 
       w = Utils.randomElement(colos);
