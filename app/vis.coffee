@@ -120,7 +120,8 @@ module.exports = class Main
         lineObject._layout = line_layout
         lineObject
 
-    panCameraToPosition3: (target, duration) =>
+    panCameraToPosition3: (target, duration, ignoreGlobal) =>
+        z_offset = if ignoreGlobal? then 0 else CAMERA_Z
         new Promise (resolve) =>
             d3.transition()
                 .duration duration || 1000
@@ -128,7 +129,7 @@ module.exports = class Main
                     current = @camera.position
                     x = d3.interpolate(current.x, target.x)
                     y = d3.interpolate(current.y, target.y)
-                    z = d3.interpolate current.z, target.z + CAMERA_Z
+                    z = d3.interpolate current.z, target.z + z_offset
                     (t) =>
                         @camera.position.x = x(t)
                         @camera.position.y = y(t)
@@ -146,9 +147,8 @@ module.exports = class Main
     getBBox = (object) ->
         bbox = new THREE.BoundingBoxHelper( object, 0xff0000 )
         do bbox.update
-        box = bbox.box
-
-        return box
+        return bbox.box
+    getBBox: getBBox
 
     panCameraToObject: (object, duration) =>
         box = getBBox object
@@ -194,22 +194,31 @@ module.exports = class Main
         .domain([0, 360])
         .range([0, Math.PI * 2])
 
-    zoomToBoundingBoxWidth: (box, duration) ->
-        width = Math.abs(box.min.x - box.max.x)
-
-        distance_scale = 1.2
-
-        v_fov = _radianScale @camera.fov
-
+    getZoomDistanceFromBox: (box, distance_scale) ->
         # See: github.com/mrdoob/three.js/issues/1239
+        v_fov = _radianScale @camera.fov
         h_fov = Math.atan( Math.tan(v_fov/2) * @camera.aspect )
 
         # See: stackoverflow.com/questions/2866350/move-camera-to-fit-3d-scene
-        distance = (width / 2) / Math.tan(h_fov) * distance_scale
+        width = Math.abs(box.min.x - box.max.x)
+        return -(width / 2) / Math.tan(h_fov) * distance_scale
 
-        target = new THREE.Vector3(0, 0, - distance)
-
-        @zoomCameraToPosition target, duration
+    # zoomToBoundingBoxWidth: (box, duration) ->
+    #     width = Math.abs(box.min.x - box.max.x)
+    #
+    #     distance_scale = 1.2
+    #
+    #     v_fov = _radianScale @camera.fov
+    #
+    #     # See: github.com/mrdoob/three.js/issues/1239
+    #     h_fov = Math.atan( Math.tan(v_fov/2) * @camera.aspect )
+    #
+    #     # See: stackoverflow.com/questions/2866350/move-camera-to-fit-3d-scene
+    #     distance = (width / 2) / Math.tan(h_fov) * distance_scale
+    #
+    #     target = new THREE.Vector3(0, 0, - distance)
+    #
+    #     @zoomCameraToPosition target, duration
 
     getWordIndex = (line, word) ->
         expression = if word is "—" then word else "\\b#{word}\\b"
@@ -511,7 +520,7 @@ class ChainVis extends Main
             .map positionLines
 
         chainObject = new THREE.Object3D()
-        chainObject.add.apply(chainObject, lineObjects)
+        # chainObject.add.apply(chainObject, lineObjects)
         chainObject.scale.multiplyScalar(@scaleText)
 
         # NOTE: Adding all objects at once – not efficient!
@@ -519,21 +528,25 @@ class ChainVis extends Main
 
         ########################
         # ANIMATE POETRY CHAIN
-
-        # Fade in first line
-        # first = @fadeToArray(1, 1000) lineObjects[0].children
-
         reducer = (prev, curr, index, array) =>
             prev.then =>
+                chainObject.add curr
                 word = curr._line.prev_connector
                 return if ! word? # word.length is 0
                 accessor = (obj) -> obj._line.line
                 one_word_array = @getLetterObjectsForWord curr, word, accessor
                 bbox = @getBBoxFromSubset curr, one_word_array
-                @fadeToArray(1, 1000) one_word_array
-                return @panCameraToBBox bbox, 1000
+                return @fadeToArray(1, 1000) one_word_array
+                # return @panCameraToBBox bbox, 1000
             .then =>
+                bbox = @getBBox chainObject
+                x = bbox.center().x
+                y = bbox.center().y
+                z = bbox.center().z + @getZoomDistanceFromBox bbox, 1.3
+                @panCameraToPosition3 new THREE.Vector3(x,y,z), 1000, true
                 @fadeToArray(1, 1000) curr.children
+            # .then =>
+            #     @fadeToArray(1, 1000) curr.children
 
         first = Promise.resolve()
         lineObjects.reduce reducer, first
