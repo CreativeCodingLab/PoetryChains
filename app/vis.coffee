@@ -107,7 +107,7 @@ module.exports = class Main
         assert line?
 
         letterObjects = line.split("").map (letter, index) =>
-            assert glyph_positions[index], "#{line} -- #{glyph_positions}"
+            assert glyph_positions[index], "#{line} -- #{letter}"
             letter_mesh = @getMeshFromString letter
             letter_mesh.position.x = - glyph_positions[index][0]
             letter_mesh
@@ -135,11 +135,19 @@ module.exports = class Main
                         @camera.position.z = z(t)
                 .each "end", resolve
 
-    panCameraToBBox: (object, duration) =>
-        bbox = new THREE.BoundingBoxHelper( object, 0xff0000 )
-        do bbox.update
+    getBBox = (object) ->
+        box = new THREE.Box3()
+        box.setFromObject object
+        return box
 
-        @panCameraToPosition3 bbox.box.center(), duration
+    panCameraToBBox: (object, duration) =>
+        # bbox = new THREE.BoundingBoxHelper( object, 0xff0000 )
+        # do bbox.update
+        # box = bbox.box
+
+        box = getBBox object
+
+        @panCameraToPosition3 box.center(), duration
 
     zoomCameraToPosition: (target, duration) =>
         new Promise (resolve) =>
@@ -198,6 +206,8 @@ module.exports = class Main
     getWordIndex = (line, word) ->
         expression = if word is "—" then word else "\\b#{word}\\b"
         regex = new RegExp expression, "i"
+        assert line, "#{line}"
+        console.log line
         line.search regex
 
     getWordIndex: getWordIndex
@@ -216,9 +226,11 @@ module.exports = class Main
 
     alignToNode: alignToNode
 
-    getLetterObjectsForWord: (text_object, word) ->
-        word_object = new THREE.Object3D()
-        begin = getWordIndex text_object._line, word
+    getLetterObjectsForWord: (text_object, word, accessor) ->
+        line = text_object._line
+        if accessor? then line = accessor text_object
+        debugger if typeof line isnt "string"
+        begin = getWordIndex line, word
         end = begin + word.length
         text_object.children.slice begin, end
 
@@ -511,6 +523,8 @@ class ChainVis extends Main
         reducer = (prev, curr) =>
             prev.then =>
                 console.log curr._line.connector
+                accessor = (obj) -> obj._line.line
+                one_word = @getLetterObjectsForWord curr, curr._line.connector, accessor
                 @fadeToArray(1, 1000) curr.children
             .then => @panCameraToBBox curr, 1000
 
