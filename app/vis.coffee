@@ -104,7 +104,7 @@ module.exports = class Main
     line_layout = line_geometry.layout
     glyph_positions = line_layout.glyphs.map (g) -> g.position
 
-    assert line?
+    # if ! line? then debugger
 
     letterObjects = line.split("").map (letter, index) =>
       assert glyph_positions[index], "#{line} -- #{letter}"
@@ -368,12 +368,11 @@ class ColocationVis extends Main
   constructor: (@scene, @camera, @font, @texture) ->
     console.info "New ColocationVis."
 
-  start: (data) ->
-    @_addNetwork data
+  rotation: 0
 
-  _addNetwork: (network) =>
+  start: (network) =>
     radius = 700
-    rotation = 0 # Math.PI / 2.2
+    rotation = @rotation # Math.PI / 2.2
 
     network_object = new THREE.Object3D()
     network_object.scale.multiplyScalar(@scaleText)
@@ -383,12 +382,16 @@ class ColocationVis extends Main
     root = makeTree network
     root = setNetworkPositions root, radius
 
+    @animate root, network_object
+
+  animate: (root, network_object) ->
+
     traverse = (node) =>
       return if ! node.position?
 
       node = @setTextObject(node)
       text_object = node._text_object
-      text_object.rotateX -rotation
+      text_object.rotateX -@rotation
       network_object.add text_object
 
       ################################
@@ -407,6 +410,7 @@ class ColocationVis extends Main
               siblings = siblings.concat(node.parent.parent)
             promises = siblings.map (sibling) =>
               @fadeToArray(0, 1000) sibling._text_object.children
+                .then -> network_object.remove(sibling._text_object)
             return Promise.all promises
         .then ->
           node.children.forEach traverse
@@ -467,22 +471,22 @@ class ColocationVis extends Main
       val: d.word
       children: d.colocations
 
-  _makeTree = (child, parent, index, array) ->
-    child.parent = parent
+    _makeTree = (child, parent, index, array) ->
+      child.parent = parent
 
-    # Find the index of this child in the parent's children array
-    child_index = parent.children
-        .map (d) -> d.val
-        .indexOf child.val
+      # Find the index of this child in the parent's children array
+      child_index = parent.children
+          .map (d) -> d.val
+          .indexOf child.val
 
-    # Set the child's "amount" to match the parent's child object
-    parents_child = parent.children[child_index]
-    child.amt = parents_child.amt
+      # Set the child's "amount" to match the parent's child object
+      parents_child = parent.children[child_index]
+      child.amt = parents_child.amt
 
-    # Set the parent's reference to match the child object
-    parent.children[child_index] = child
+      # Set the parent's reference to match the child object
+      parent.children[child_index] = child
 
-    return parent
+      return parent
 
     network.reduceRight(_makeTree)
 
