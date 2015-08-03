@@ -15,7 +15,7 @@ runScript = (scriptPath) ->
         childProcess.exec(command, (error, stdout, stderr) ->
             reject(error) if (error)
             stdout = replaceEmDash stdout
-            console.log stdout
+            # console.log stdout
             json = JSON.parse(stdout)
             resolve json
         )

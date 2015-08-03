@@ -8,13 +8,15 @@ public class PoetryChain
 
   List<Line> lines;
   List<Word> words; //words that connect the lines
+  Word first;
+  Word last;
 
   public PoetryChain(List<Line> lines, List<Word> words)
   {
     this.lines = lines;
     this.words = words;
   }
-  
+
   public void printChain()
   {
     for (int i = 0; i < lines.size(); i++)
@@ -31,10 +33,23 @@ public class PoetryChain
     }
   }
 
+  public void first(Word word) {
+      first = word;
+  }
+  public Word first() {
+      return first;
+  }
+
+  public void last(Word word) {
+      last = word;
+  }
+  public Word last() {
+      return last;
+  }
 
   public void printChainJSON() {
     System.out.print("[\n");
-    
+
     for (int i = 0; i < lines.size(); i++)
     {
       System.out.print("\t{\n");
@@ -44,10 +59,10 @@ public class PoetryChain
       //lines.get(i).printLine();
 
       System.out.print("\t\t\"line\":\"");
-      for (int j = 0; j < line.words.size(); j++) { 
-        Word w = line.words.get(j); 
-        String theWord = w.word; 
-       
+      for (int j = 0; j < line.words.size(); j++) {
+        Word w = line.words.get(j);
+        String theWord = w.word;
+
         theWord = theWord.replaceAll("\"", "\\\\\"");
 
         System.out.print(theWord);
@@ -63,12 +78,13 @@ public class PoetryChain
         System.out.print("\t\t\"connector\":\"" + words.get(i).word + "\"\n");
         System.out.print("\t},\n");
       } else {
-        System.out.print("\t\t\"connector\":\"\"\n");
+          if (last != null) System.out.print("\t\t\"connector\":\"" + last.word + "\"\n");
+          else System.out.print("\t\t\"connector\":\"\"\n");
          System.out.print("\t}\n");
       }
     }
     System.out.print("]");
-        
+
   }
 
 
@@ -84,17 +100,17 @@ public class PoetryChain
       }
       System.out.println("{");
       Line line = lines.get(i);
-      
+
       System.out.println("\t\"poem\": \"" + line.poem.title + "\",");
       System.out.print("\t\"line\": \"");
       line.printLineEscaped();
       System.out.print("\"");
-     
+
       if (i < lines.size() - 1) {
         System.out.println(",");
         System.out.println("\t\"word\": \"" + words.get(i).word.replaceAll("\"", "\\\\\"") + "\"");
       }
-        
+
       System.out.print("}");
     }
     System.out.println("]");

@@ -45,10 +45,15 @@ public class Parser
     {
       PoetryChain chain = connectWords(r1.word, r2.word, minDepth, maxDepth);
 
-      if (chain != null)
-      {
-        chains.add(chain);
+      while (chain == null) {
+          // Try to find a new chain with a new r2
+          r2 = Utils.randomElement(words.values());
+          chain = connectWords(r1.word, r2.word, minDepth, maxDepth);
       }
+
+      chain.first(r1);
+      chain.last(r2);
+      chains.add(chain);
 
       r1 = r2;
       r2 = Utils.randomElement(words.values());
