@@ -389,7 +389,7 @@ class ColocationVis extends Main
 
     _addNetwork: (network) =>
         radius = 700
-        rotation = Math.PI / 2.2
+        rotation = 0 # Math.PI / 2.2
 
         network_object = new THREE.Object3D()
         network_object.scale.multiplyScalar(@scaleText)
@@ -520,10 +520,8 @@ class ChainVis extends Main
             .map positionLines
 
         chainObject = new THREE.Object3D()
-        # chainObject.add.apply(chainObject, lineObjects)
         chainObject.scale.multiplyScalar(@scaleText)
 
-        # NOTE: Adding all objects at once – not efficient!
         @scene.add(chainObject)
 
         ########################
@@ -545,8 +543,6 @@ class ChainVis extends Main
                 z = bbox.center().z + @getZoomDistanceFromBox bbox, 1.3
                 @panCameraToPosition3 new THREE.Vector3(x,y,z), 1000, true
                 @fadeToArray(1, 1000) curr.children
-            # .then =>
-            #     @fadeToArray(1, 1000) curr.children
 
         first = Promise.resolve()
         lineObjects.reduce reducer, first
