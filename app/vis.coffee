@@ -215,7 +215,6 @@ module.exports = class Main
         expression = if word is "—" then word else "\\b#{word}\\b"
         regex = new RegExp expression, "i"
         assert line, "#{line}"
-        console.log line
         line.search regex
 
     getWordIndex: getWordIndex
@@ -526,17 +525,15 @@ class ChainVis extends Main
 
         reducer = (prev, curr, index, array) =>
             prev.then =>
-                console.log curr._line
-                word = curr._line.connector
-                return if word.length is 0
+                word = curr._line.prev_connector
+                return if ! word? # word.length is 0
                 accessor = (obj) -> obj._line.line
                 one_word_array = @getLetterObjectsForWord curr, word, accessor
                 bbox = @getBBoxFromSubset curr, one_word_array
-                return @fadeToArray(1, 1000) one_word_array
-                # return @panCameraToBBox bbox, 1000
+                @fadeToArray(1, 1000) one_word_array
+                return @panCameraToBBox bbox, 1000
             .then =>
                 @fadeToArray(1, 1000) curr.children
-            # .then => @panCameraToObject curr, 1000
 
         first = Promise.resolve()
         lineObjects.reduce reducer, first
