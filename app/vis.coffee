@@ -135,18 +135,26 @@ module.exports = class Main
                         @camera.position.z = z(t)
                 .each "end", resolve
 
-    getBBox = (object) ->
-        box = new THREE.Box3()
-        box.setFromObject object
+    getBBoxFromSubset: (parent, array) ->
+        siblings = parent.children.filter (child) ->
+            return array.indexOf(child) < 0
+        parent.remove.apply parent, siblings
+        box = getBBox parent
+        parent.add.apply parent, siblings
         return box
 
-    panCameraToBBox: (object, duration) =>
-        # bbox = new THREE.BoundingBoxHelper( object, 0xff0000 )
-        # do bbox.update
-        # box = bbox.box
+    getBBox = (object) ->
+        bbox = new THREE.BoundingBoxHelper( object, 0xff0000 )
+        do bbox.update
+        box = bbox.box
 
+        return box
+
+    panCameraToObject: (object, duration) =>
         box = getBBox object
+        @panCameraToBBox box, duration
 
+    panCameraToBBox: (box, duration) =>
         @panCameraToPosition3 box.center(), duration
 
     zoomCameraToPosition: (target, duration) =>
@@ -227,8 +235,7 @@ module.exports = class Main
     alignToNode: alignToNode
 
     getLetterObjectsForWord: (text_object, word, accessor) ->
-        line = text_object._line
-        if accessor? then line = accessor text_object
+        line = if accessor? then accessor text_object else text_object._line
         debugger if typeof line isnt "string"
         begin = getWordIndex line, word
         end = begin + word.length
@@ -257,7 +264,7 @@ class LinesVis extends Main
     animateLines: (root) =>
         # Fade in the root
         @fadeToArray(1, 1000) root._text_object.children
-        @panCameraToBBox root._text_object
+        @panCameraToObject root._text_object
             .then -> traverse root
 
         traverse = (node) =>
@@ -299,7 +306,7 @@ class LinesVis extends Main
                 .then =>
                     if next_child?
                         # fadeToArray(1, 1000) next_child._text_object.children
-                        @panCameraToBBox next_child._text_object
+                        @panCameraToObject next_child._text_object
                 .then ->
                     traverse next_child unless ! next_child?
 
@@ -399,7 +406,7 @@ class ColocationVis extends Main
 
             if node.children
                 faded_in.then =>
-                    @panCameraToBBox(text_object)
+                    @panCameraToObject(text_object)
                 .then =>
                     if node.parent?
                         siblings = node.parent.children.filter (child) ->
@@ -516,18 +523,22 @@ class ChainVis extends Main
 
         # Fade in first line
         # first = @fadeToArray(1, 1000) lineObjects[0].children
-        first = Promise.resolve()
 
-        # lineObjects.reduce reducer, Promise.resolve()
-
-        reducer = (prev, curr) =>
+        reducer = (prev, curr, index, array) =>
             prev.then =>
-                console.log curr._line.connector
+                console.log curr._line
+                word = curr._line.connector
+                return if word.length is 0
                 accessor = (obj) -> obj._line.line
-                one_word = @getLetterObjectsForWord curr, curr._line.connector, accessor
+                one_word_array = @getLetterObjectsForWord curr, word, accessor
+                bbox = @getBBoxFromSubset curr, one_word_array
+                return @fadeToArray(1, 1000) one_word_array
+                # return @panCameraToBBox bbox, 1000
+            .then =>
                 @fadeToArray(1, 1000) curr.children
-            .then => @panCameraToBBox curr, 1000
+            # .then => @panCameraToObject curr, 1000
 
+        first = Promise.resolve()
         lineObjects.reduce reducer, first
 
     positionLines = (line, index, array) =>
