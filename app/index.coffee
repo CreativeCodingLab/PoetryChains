@@ -18,6 +18,7 @@ do ->
             when "", "#chain" then do chainMode
             when "#colocation" then do colocationMode
             when "#lines" then do linesMode
+            when "#intro" then do introMode
 
         # test = vis.newTest()
         # interval = -> test.foo()
@@ -47,3 +48,9 @@ colocationMode = ->
     console.info "Starting Colocation Mode."
     getJson "get-colocation.json", "Requesting colocation network..."
         .then vis.addNetwork
+
+introMode = ->
+    console.info "Starting Intro Mode."
+    vis.addIntro()
+    
+

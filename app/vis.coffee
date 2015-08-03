@@ -65,6 +65,10 @@ module.exports = class Main
     linesVis = new LinesVis @scene, @camera, @font, @texture
     linesVis.start lines
 
+  addIntro: =>
+    introVis = new IntroVis @scene, @camera, @font, @texture
+    introVis.start() 
+
   setTexture: (@texture) ->
     maxAni = @renderer.getMaxAnisotropy()
 
@@ -562,3 +566,19 @@ class ChainVis extends Main
         obj.my_prev_connector_index = my_prev_idx
         obj.prev_connector_index = prev_idx
       obj
+
+
+
+class IntroVis extends Main
+  constructor: (@scene, @camera, @font, @texture) ->
+    console.info "New IntroVis."
+
+  start: =>
+    @_addIntro()
+
+  _addIntro: =>
+    lineObject = @getLineObject("Intro Hello Chains!")
+
+    @scene.add(lineObject)
+
+
