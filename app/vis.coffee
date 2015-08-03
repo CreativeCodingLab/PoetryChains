@@ -65,6 +65,10 @@ module.exports = class Main
     linesVis = new LinesVis @scene, @camera, @font, @texture
     linesVis.start lines
 
+  addIntro: =>
+    introVis = new IntroVis @scene, @camera, @font, @texture
+    introVis.start()
+
   setTexture: (@texture) ->
     maxAni = @renderer.getMaxAnisotropy()
 
@@ -562,3 +566,32 @@ class ChainVis extends Main
         obj.my_prev_connector_index = my_prev_idx
         obj.prev_connector_index = prev_idx
       obj
+
+
+
+class IntroVis extends Main
+  constructor: (@scene, @camera, @font, @texture) ->
+    console.info "New IntroVis."
+
+  start: =>
+    @_addIntro()
+
+  _addIntro: ->
+    lineObject = @getLineObject("Intro Hello Chains!")
+    # The objects must be scaled
+    # but you can also add everything to a parent object, and scale that:
+
+    # parent = new THREE.Object3D()
+    # parent.scale.multiplyScalar(@scaleText)
+    # parent.add(lineObject)
+    # @scene.add(parent)
+
+    lineObject.scale.multiplyScalar(@scaleText)
+
+    # The lineObject has "children", which is an array of letter objects
+    # They all start out at opacity zero.
+    # @fadeToArray(1, 1000) means "fade each thing in this array to 1, in 1000ms"
+
+    @fadeToArray(1, 1000)(lineObject.children)
+
+    @scene.add(lineObject)
