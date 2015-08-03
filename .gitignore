@@ -1,3 +1,4 @@
+*.log
 *.class
 node_modules
 
@@ -20,4 +21,3 @@ hs_err_pid*
 Session.vim
 .netrwhist
 *~
-
