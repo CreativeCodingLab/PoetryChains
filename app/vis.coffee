@@ -216,7 +216,7 @@ module.exports = class Main
 
     alignToNode: alignToNode
 
-    getWordObjects: (text_object, word) ->
+    getLetterObjectsForWord: (text_object, word) ->
         word_object = new THREE.Object3D()
         begin = getWordIndex text_object._line, word
         end = begin + word.length
@@ -270,7 +270,7 @@ class LinesVis extends Main
                     if next_child?
                         promises = node.children.map (child) =>
                             # Get the array of letters for the target word only
-                            children = @getWordObjects child._text_object, node.word
+                            children = @getLetterObjectsForWord child._text_object, node.word
                             @fadeToArray(1, 1000) children
                         return Promise.all promises
                 .then =>
