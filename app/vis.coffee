@@ -447,12 +447,19 @@ class ColocationVis extends Main
     network_object = new THREE.Object3D()
     network_object.scale.multiplyScalar(@scaleText)
     network_object.rotateX rotation
+
     @scene.add network_object
 
     root = makeTree network
     root = setNetworkPositions root, radius
 
     return @animate root, network_object
+      .then =>
+        @wait 3000
+      .then =>
+        @fadeAll network_object.children, 0, 1000
+      .then =>
+        network_object.remove.apply network_object, network_object.children
 
   animate: (root, network_object) ->
 
