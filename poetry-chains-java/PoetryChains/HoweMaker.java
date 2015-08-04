@@ -50,7 +50,7 @@ public class HoweMaker {
   {
       System.out.print("[\n");
 
-      List<Line> lines = HoweMaker.randomElements(Parser.lines, Utils.randomInt(12,25));
+      List<Line> lines = HoweMaker.randomElements(Parser.lines, Utils.randomInt(8,18));
 
       for (int i = 0; i < lines.size(); i++) {
         Line l = lines.get(i);

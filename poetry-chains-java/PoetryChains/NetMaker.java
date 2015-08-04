@@ -24,17 +24,17 @@ public class NetMaker {
     Word word;
     if (args.length == 0) {
       word = Utils.randomElement(Parser.rankedWords, 10000, 18000); //get a low frequency word
-      makeNets(word, 10);
+      makeNets(word, 8);
     } else {
       System.err.println("Seeding PoetryChain:ColocationNets with " + args[0]);
       word = Parser.words.get(args[0]);
 
       if (word != null) {
-        makeNets(word, 10);
+        makeNets(word, 8);
 
       } else {
         word = Utils.randomElement(Parser.rankedWords, 10000, 18000); //get a low frequency word
-        makeNets(word, 10);
+        makeNets(word, 8);
       }
     }
 
