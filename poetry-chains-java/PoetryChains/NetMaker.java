@@ -26,7 +26,7 @@ public class NetMaker {
       word = Utils.randomElement(Parser.rankedWords, 10000, 18000); //get a low frequency word
       makeNets(word, 10);
     } else {
-      System.out.println("Seeding PoetryChain:ColocationNets with " + args[0]);
+      System.err.println("Seeding PoetryChain:ColocationNets with " + args[0]);
       word = Parser.words.get(args[0]);
 
       if (word != null) {

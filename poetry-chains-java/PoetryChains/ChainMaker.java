@@ -37,7 +37,7 @@ public class ChainMaker {
     if (args.length == 0) {
       makeChains(null);
     } else {
-      System.out.println("Seeding PoetryChain:Chain with " + args[0]);
+      System.err.println("Seeding PoetryChain:Chain with " + args[0]);
       Word sw = Parser.words.get(args[0]);
 
       if (sw != null) {
@@ -47,7 +47,7 @@ public class ChainMaker {
       }
     }
 
-    
+
   }
 
   private static void makeChains(Word startWord)
@@ -144,8 +144,8 @@ public class ChainMaker {
 
   /*
 
-     [ 
-     { 
+     [
+     {
      "word": "unremembered",
      "colocations": [
      {"val": "stars", "amt":4},
@@ -154,7 +154,7 @@ public class ChainMaker {
      {"val": "stars", "amt":4}
      ]
      },
-     { 
+     {
      "word": "unremembered",
      "colocations": [
      {"val": "stars", "amt":4},

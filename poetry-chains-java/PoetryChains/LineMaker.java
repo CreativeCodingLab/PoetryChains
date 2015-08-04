@@ -25,7 +25,7 @@ public class LineMaker {
     if (args.length == 0) {
       makeLines(null);
     } else {
-      System.out.println("Seeding PoetryChain:Lines with " + args[0]);
+      System.err.println("Seeding PoetryChain:Lines with " + args[0]);
       Word sw = Parser.words.get(args[0]);
 
       if (sw != null) {

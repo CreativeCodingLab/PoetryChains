@@ -38,36 +38,32 @@ modeGetter = () ->
     return order[index]
 
 getLastWord = (data, mode) ->
-  console.log data, mode
   if mode is "chain"
     _last = data[data.length-1]
     return _last[_last.length-1].connector
-  # last = if mode is "chain" then data[data.length-1]
+  if mode is "lines"
+    return data[data.length-1].word
+  if mode is "colocation"
+    return data[data.length-1].word
 
 all = ->
   getNext = modeGetter()
   console.info "Starting all."
 
   mode = getNext()
+  console.info "mode: #{mode}"
   got_first = getJson "get-#{mode}.json", "Requesting: #{mode}"
 
-  got_first.then (d) ->
+  doNextMode = (d) ->
     lastWord = getLastWord(d, mode)
-    next_mode = getNext()
-    getJson "get-#{next_mode}.json?word=#{lastWord}", "Requesting: #{next_mode}"
+    console.log mode
+    console.log d
     console.log lastWord
+    mode = getNext()
+    getJson "get-#{mode}.json?word=#{lastWord}", "Requesting: #{mode}"
+      .then doNextMode
 
-  # next = (word) ->
-  #   mode = getNext()
-  #   got_this_data = getJson "get-#{mode}.json", "Requesting: #{mode}"
-  #     .then (d) -> console.log d
-  #
-  #   next_mode = getNext()
-  #
-  # next()
-
-
-
+  got_first.then doNextMode
 
 linesMode = ->
   console.info "Starting Lines Mode."

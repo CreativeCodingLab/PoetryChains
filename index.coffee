@@ -13,12 +13,14 @@ app = express()
 app.use require("cors")()
 
 app.get("/api/get-chain.json", (request, response) ->
-  poetryFunctions().poetryChain().then (data) ->
+  word = request.query.word
+  poetryFunctions().poetryChain(word).then (data) ->
     response.json(data)
 )
 
 app.get("/api/get-colocation.json", (request, response) ->
-  poetryFunctions().colocationNet().then (data) ->
+  word = request.query.word
+  poetryFunctions().colocationNet(word).then (data) ->
     response.json(data)
 )
 
