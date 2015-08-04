@@ -604,6 +604,10 @@ class IntroVis extends Main
     lineObject2 = @getLineObject("A series of animated explorations")
     lineObject3 = @getLineObject("through the collected poems of Emily Dickinson")
    
+    text_url = @getLineObject("http://evl.uic.edu/creativecoding")
+   
+
+
     text_title.position.y = 30;
     text_author.position.y = text_title.position.y - text_title._layout.height - 50
     text_author.position.x = text_title.position.x - 50
@@ -613,10 +617,14 @@ class IntroVis extends Main
     lineObject3.position.y = lineObject2.position.y - lineObject2._layout.height - 10
     lineObject3.position.x = text_title.position.x - 50
     
+    text_url.position.y = lineObject3.position.y - lineObject2._layout.height - 200
+    text_url.position.x = text_title.position.x - 10
+
     text_title.scale.multiplyScalar(1.5) 
     text_author.scale.multiplyScalar(0.7) 
     lineObject2.scale.multiplyScalar(0.7) 
     lineObject3.scale.multiplyScalar(0.7) 
+    text_url.scale.multiplyScalar(0.5) 
  
     # The objects must be scaled
     # but you can also add everything to a parent object, and scale that:
@@ -626,6 +634,7 @@ class IntroVis extends Main
     parent.add(text_author)
     parent.add(lineObject2)
     parent.add(lineObject3)
+    parent.add(text_url)
     parent.scale.multiplyScalar(@scaleText)
 
     @scene.add(parent)
