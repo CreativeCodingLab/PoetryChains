@@ -770,6 +770,8 @@ class HoweVis extends Main
 
     parent = new THREE.Object3D()
     parent.updateMatrixWorld(true)
+    parent.scale.multiplyScalar(@scaleText)
+    @scene.add(parent)
 
     x = (Math.random() * 1000.0)
     y = (Math.random() * 1000.0)
@@ -777,6 +779,8 @@ class HoweVis extends Main
     rz = Math.random() * Math.PI * 2.0
     lh = Math.random() * 150
     numlines = 0
+
+    lines = []
 
     for line in text
       lineobj = @getLineObject(line)
@@ -795,16 +799,19 @@ class HoweVis extends Main
       lineobj.translateX(x)
       lineobj.translateY(y)
       numlines = numlines + 1
-      parent.add(lineobj)
-
-
-    parent.scale.multiplyScalar(@scaleText)
+      lines.push(lineobj)
 
     @scene.add(parent)
-    @fadeAll(parent)
 
-    bbox = @getBBox parent
-    x = bbox.center().x
-    y = bbox.center().y
-    z = bbox.center().z + @getZoomDistanceFromBox bbox, 2.5
-    @panCameraToPosition3 new THREE.Vector3(x,y,z), 1000, true
+    reduction = (prev, curr) =>
+      prev.then =>
+        parent.add(curr)
+        @fadeToArray(1, 1000) curr.children
+        bbox = @getBBox parent
+        x = bbox.center().x
+        y = bbox.center().y
+        z = bbox.center().z + @getZoomDistanceFromBox bbox, 2.5
+
+        return @panCameraToPosition3 new THREE.Vector3(x,y,z), 1000, true
+
+    promise = lines.reduce reduction, Promise.resolve()
