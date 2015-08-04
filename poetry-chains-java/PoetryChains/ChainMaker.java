@@ -86,62 +86,6 @@ public class ChainMaker {
   }
 
 
-  public static void makeNets(final Word word, int numberOfNets)
-  {
-    Word w = word;
-
-    if (OUTPUT_JSON) {
-      System.out.print("[\n");
-    }
-
-    for (int i = 0; i < numberOfNets; i++) {
-
-      if (OUTPUT_JSON) {
-        System.out.print("\t{\n\t\t\"word\":\"" + w + "\",\n\t\t\"colocations\": [\n");
-      } else {
-        System.out.print(w + "\n");
-      }
-
-      CollocationNet collocationNet = new CollocationNet();
-
-      List<Word> colos = collocationNet.getCollocations(w);
-
-      for (int j = 0; j < colos.size(); j++) {
-        Word cw = colos.get(j);
-
-        if (OUTPUT_JSON) {
-          System.out.print("\t\t\t{\"val\":\""+cw.word+"\",\"amt\":"+ w.collocations.get(cw)+"}" );
-
-          if (j < colos.size() - 1) {
-            System.out.print(",\n");
-          }
-        } else {
-          System.out.println("\t" + cw.word + " (" + w.collocations.get(cw) + ")");
-        }
-      }
-
-      if (OUTPUT_JSON) {
-        System.out.print("\n\t\t]\n\t}");
-
-        if (i < numberOfNets - 1) {
-          System.out.print(",\n");
-        }
-      } else {
-        System.out.print("\n");
-      }
-
-      w = Utils.randomElement(colos);
-
-    }
-
-    if (OUTPUT_JSON) {
-      System.out.print("\n]\n");
-    } else {
-      System.out.print("\n");
-    }
-  }
-
-
   /*
 
      [

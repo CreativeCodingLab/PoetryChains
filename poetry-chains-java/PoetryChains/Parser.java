@@ -412,10 +412,12 @@ public class Parser
       //String wordStr = wordScanner.next().trim();
 
 
-      if (!wordStr.equals("--"))
+      if (!wordStr.equals("—"))
       {
 	      //REMOVE PUNCTUATION
-        wordStr = wordStr.replaceAll("\\p{Punct}+", "");
+        //wordStr = wordStr.replaceAll("\\p{Punct}+", "");
+        wordStr = wordStr.replaceAll("^[^a-zA-Z]+", "");
+        wordStr = wordStr.replaceAll("[^a-zA-Z]+$", "");
       }
       currentWord = words.get(wordStr);
 

@@ -59,6 +59,12 @@ public class PoetryChain
       //lines.get(i).printLine();
 
       System.out.print("\t\t\"line\":\"");
+
+      String text = line.text;
+      text = text.replaceAll("\"", "\\\\\"");
+      System.out.print(text);
+
+      /*
       for (int j = 0; j < line.words.size(); j++) {
         Word w = line.words.get(j);
         String theWord = w.word;
@@ -70,6 +76,7 @@ public class PoetryChain
           System.out.print(" ");
         }
       }
+      */
       System.out.print("\",\n");
 
 

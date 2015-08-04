@@ -8,7 +8,9 @@ assert = require "assert"
 module.exports = class Main
 
   scaleText: 0.005
-  speedMultiplier: 0.9
+  #speedMultiplier: 0.9
+  speedMultiplier: 0.09
+
 
   CAMERA_Z = -9
 
@@ -290,6 +292,11 @@ module.exports = class Main
     # console.log "offset: #{offset}"
     other.position.x += offset
 
+  checkIt = (idx, a, b) ->
+    #if idx < 0 
+    console.log("HEY : " +  a + " : " + b)
+
+
   alignToNode = (parent) ->
     (child) ->
       parent_x = parent._text_object.position.x
@@ -298,9 +305,15 @@ module.exports = class Main
           .map (_) ->
             idx = getWordIndex _.line, word
             assert idx isnt -1, "#{_.line}, #{word}"
+
+            #checkIt(idx, _.line, word)
+            
+            #else  
+            #_._text_object.children[0].position.x
             _._text_object.children[idx].position.x
           .reduce (a, b) -> a - b
       child._text_object.position.x = parent_x + offset
+      #child._text_object.position.x = 0
 
   alignToNode: alignToNode
 
@@ -690,7 +703,8 @@ class ChainVis extends Main
 
   processChain: (chain) ->
     chain.map (obj, i, array) =>
-      obj.connector_index = obj.line.indexOf obj.connector
+      #obj.connector_index = obj.line.indexOf obj.connector
+      obj.connector_index = obj.line.toLowerCase().indexOf obj.connector.toLowerCase()
       if i > 0
         prev = array[i-1]
         prev_con = prev.connector
