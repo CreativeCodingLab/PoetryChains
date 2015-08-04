@@ -9,7 +9,7 @@ public class LineMaker {
 
   static boolean OUTPUT_JSON = true;
   static int MAX_LINES = 20; //max collocated lines per iteration
-  static int NUM_LINES = 4; //num iterations
+  static int NUM_LINES = 3; //num iterations
 
   public Word lastSelected = null;
 
