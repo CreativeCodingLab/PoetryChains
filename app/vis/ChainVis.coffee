@@ -75,6 +75,7 @@ module.exports = class ChainVis extends Main
     # ANIMATE POETRY CHAIN
     reducer = (prev, curr, index, array) =>
       prev.then =>
+        console.log "chain line"
         chainObject.add curr
         word = curr._line.prev_connector
         return if ! word? # word.length is 0
