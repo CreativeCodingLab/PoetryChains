@@ -55,6 +55,8 @@ all = ->
   got_first = getJson "get-#{mode}.json", "Requesting: #{mode}"
 
   doNextMode = (d) ->
+    switch mode
+      when "chain" then vis.addChain d
     lastWord = getLastWord(d, mode)
     console.log mode
     console.log d
@@ -74,7 +76,7 @@ chainMode = ->
   console.info "Starting Chain Mode."
   getJson "get-chain.json", "Requesting poetry chain..."
     .then (d) ->
-      vis.addChain d[0]
+      vis.addChain d
 
 colocationMode = ->
   console.info "Starting Colocation Mode."
