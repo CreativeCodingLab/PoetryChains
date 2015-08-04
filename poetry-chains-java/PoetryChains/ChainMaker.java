@@ -33,7 +33,6 @@ public class ChainMaker {
 
     //System.err.println("TOTAL NUMBER WORDS = " + Parser.rankedWords.size());
 
-    //A
     if (args.length == 0) {
       makeChains(null);
     } else {
