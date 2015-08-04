@@ -18,16 +18,19 @@ module.exports = class LinesVis extends Main
   # ANIMATE LINES
   #
   animateLines: (root) =>
+    # console.info "Animating lines."
     # Fade in the root
     @lines_object.add root._text_object
     @fadeToArray(1, 1000) root._text_object.children
-      .then => root._text_object._all_here = true
+      # .then => root._text_object._all_here = true
     @panCameraToObject root._text_object
     # @adjustCameraWidth root._text_object
         .then => return @traverse root
 
   traverse: (node) =>
+    console.assert node.word isnt "", "node.word is '#{node.word}'", node
     return if ! node.children?
+    return if node.word is ""
 
     next_child = node.children.filter((_) -> _.children?)[0]
 

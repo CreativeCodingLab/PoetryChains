@@ -41,13 +41,16 @@ modeGetter = () ->
 
 getModeFunc = (mode) ->
   switch mode
-    when "intro" then vis.addIntro
+    when "intro" then (d) -> vis.getVisType("IntroVis").start(d)
+    # when "intro" then vis.addIntro
     # when "chain" then vis.addChain
     when "chain" then (d) -> vis.getVisType("ChainVis").start(d)
-    when "colocation" then vis.addNetwork
+    # when "colocation" then vis.addNetwork
+    when "colocation" then (d) -> vis.getVisType("ColocationVis").start(d)
     when "lines" then (d) -> vis.getVisType("LinesVis").start(d)
+    when "howe" then (d) -> vis.getVisType("HoweVis").start(d)
     # when "lines" then (d) -> vis.getVisType("LinesVis").start(d)
-    when "howe" then vis.addHowe
+    # when "howe" then vis.addHowe
 
 getLastWord = (data, mode) ->
   if mode is "chain"
@@ -93,18 +96,19 @@ linesMode = ->
   console.info "Starting Lines Mode."
   getJson "get-lines.json", "Requesting Lines..."
     # .then vis.addLines
-    .then (d) -> vis.startVis("LinesVis", d)
+    .then (d) -> vis.getVisType("LinesVis").start(d)
 
 chainMode = ->
   console.info "Starting Chain Mode."
   getJson "get-chain.json", "Requesting poetry chain..."
     # .then vis.addChain
-    .then (d) -> vis.startVis("ChainVis", d)
+    .then (d) -> vis.getVisType("ChainVis").start(d)
 
 colocationMode = ->
   console.info "Starting Colocation Mode."
   getJson "get-colocation.json", "Requesting colocation network..."
-    .then vis.addNetwork
+    # .then vis.addNetwork
+    .then (d) -> vis.getVisType("ColocationVis").start(d)
 
 introMode = ->
   console.info "Starting Intro Mode."

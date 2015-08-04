@@ -22,7 +22,7 @@ module.exports = class ChainVis extends Main
     return promise
 
   _endChain: (lastObject) =>
-    console.info "Done with one chain."
+    # console.info "Done with one chain."
     siblings = lastObject.parent.children.filter (child) ->
       child isnt lastObject
     @fadeAll(siblings, 0, 1000)
@@ -75,10 +75,11 @@ module.exports = class ChainVis extends Main
     # ANIMATE POETRY CHAIN
     reducer = (prev, curr, index, array) =>
       prev.then =>
-        console.log "chain line"
         chainObject.add curr
         word = curr._line.prev_connector
         return if ! word? # word.length is 0
+        console.assert word isnt "", "Connecting word is '#{word}'", curr._line
+        return if word is ""
         accessor = (obj) -> obj._line.line
         one_word_array = @getLetterObjectsForWord curr, word, accessor
         bbox = @getBBoxFromSubset curr, one_word_array
