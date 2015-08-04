@@ -15,7 +15,7 @@ do ->
     vis.setFont(obj.font)
   .then ->
     switch window.location.hash
-      when "" then do all
+      when "", "#all" then do all
       when "#chain" then do chainMode
       when "#colocation" then do colocationMode
       when "#lines" then do linesMode
@@ -30,10 +30,44 @@ getJson = (apiCall, message) ->
     url = apiUrl apiCall
     d3.json url, resolve
 
-all = ->
-  console.info "Starting all."
+modeGetter = () ->
   order = [ "chain", "lines", "colocation" ]
-  mode = order[0]
+  index = 2
+  ->
+    if ++index is order.length then index = 0
+    return order[index]
+
+getLastWord = (data, mode) ->
+  console.log data, mode
+  if mode is "chain"
+    _last = data[data.length-1]
+    return _last[_last.length-1].connector
+  # last = if mode is "chain" then data[data.length-1]
+
+all = ->
+  getNext = modeGetter()
+  console.info "Starting all."
+
+  mode = getNext()
+  got_first = getJson "get-#{mode}.json", "Requesting: #{mode}"
+
+  got_first.then (d) ->
+    lastWord = getLastWord(d, mode)
+    next_mode = getNext()
+    getJson "get-#{next_mode}.json?word=#{lastWord}", "Requesting: #{next_mode}"
+    console.log lastWord
+
+  # next = (word) ->
+  #   mode = getNext()
+  #   got_this_data = getJson "get-#{mode}.json", "Requesting: #{mode}"
+  #     .then (d) -> console.log d
+  #
+  #   next_mode = getNext()
+  #
+  # next()
+
+
+
 
 linesMode = ->
   console.info "Starting Lines Mode."

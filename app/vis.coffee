@@ -590,7 +590,8 @@ class IntroVis extends Main
 
     # The lineObject has "children", which is an array of letter objects
     # They all start out at opacity zero.
-    # @fadeToArray(1, 1000) means "fade each thing in this array to 1, in 1000ms"
+    # @fadeToArray(1, 1000) means:
+    # "fade each thing in this array to 1, in 1000ms"
 
     @fadeToArray(1, 1000)(lineObject.children)
 
