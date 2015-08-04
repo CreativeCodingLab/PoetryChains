@@ -428,6 +428,8 @@ class LinesVis extends Main
           # fadeToArray(1, 1000) next_child._text_object.children
           @panCameraToObject next_child._text_object
       .then =>
+        @wait 3e3
+      .then =>
         if next_child?
           return @traverse next_child
         else
