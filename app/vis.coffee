@@ -153,11 +153,16 @@ module.exports = class Main
     return bbox.box
   getBBox: getBBox
 
+  ###########################################################################
+  ###########################################################################
+  # ACTIONS
+
   panCameraToPosition3: (target, duration, ignoreGlobal) =>
     z_offset = if ignoreGlobal? then 0 else CAMERA_Z
+    dur = (duration || 1000) * @speedMultiplier
     new Promise (resolve) =>
       d3.transition()
-        .duration duration || 1000
+        .duration dur
         .tween "moveCamera", =>
           current = @camera.position
           x = d3.interpolate(current.x, target.x)
@@ -178,12 +183,12 @@ module.exports = class Main
 
   wait: (duration) =>
     return new Promise (resolve) =>
-      setTimeout(resolve, duration)
+      setTimeout(resolve, duration * @speedMultiplier)
 
   zoomCameraToPosition: (target, duration) =>
     new Promise (resolve) =>
       d3.transition()
-        .duration duration
+        .duration duration * @speedMultiplier
         .tween "zoomCamera", =>
           current = @camera.position
           z = d3.interpolate current.z, target.z
@@ -191,10 +196,10 @@ module.exports = class Main
             @camera.position.z = z(t)
         .each "end", resolve
 
-  addFadeOpacityTransition = (to, duration, target) ->
-    (selection) ->
+  addFadeOpacityTransition: (to, duration, target) ->
+    (selection) =>
       selection.transition()
-        .duration duration
+        .duration duration * @speedMultiplier
         .delay (_, i) -> i * 10
         .tween "fadeOpacity", ->
           # if target? then debugger
@@ -204,19 +209,24 @@ module.exports = class Main
           (t) ->
             obj.material.uniforms.opacity.value = i(t)
 
-  fadeToArray = (to, duration) ->
-    (array) ->
-      new Promise (resolve) ->
+  fadeToArray: (to, duration) ->
+    (array) =>
+      new Promise (resolve) =>
         selection = d3.selectAll array
-        addFadeOpacityTransition(to, duration)(selection)
+        @addFadeOpacityTransition(to, duration)(selection)
           .each "end", resolve
-
-  fadeToArray: fadeToArray
 
   fadeAll: (objects, to, duration) ->
       promises = objects.map (child) =>
           return @fadeToArray(to, duration) child.children
       return Promise.all promises
+
+  chainedFadeIn: (array, duration) ->
+    reduction = (promise, curr, index, array) =>
+      promise.then =>
+        @fadeToArray(1, 1000) curr._text_object.children
+
+    promise = array.reduce reduction, Promise.resolve()
 
   _radianScale = d3.scale.linear()
       .domain([0, 360])
@@ -240,8 +250,6 @@ module.exports = class Main
       h_fov = Math.atan( Math.tan(v_fov/2) * @camera.aspect )
 
       return -(height / 2) / Math.tan(h_fov) * distance_scale
-
-
 
   getWordIndex = (line, word) ->
     expression = if word is "—" then word else "\\b#{word}\\b"
@@ -294,13 +302,6 @@ module.exports = class Main
     end = begin + word.length
     # console.log begin, end
     text_object.children.slice begin, end
-
-  chainedFadeIn: (array, duration) ->
-    reduction = (promise, curr, index, array) =>
-      promise.then =>
-        @fadeToArray(1, 1000) curr._text_object.children
-
-    promise = array.reduce reduction, Promise.resolve()
 
 class LinesVis extends Main
   lineSpacing: 40
