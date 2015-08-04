@@ -20,6 +20,7 @@ do ->
       when "#colocation" then do colocationMode
       when "#lines" then do linesMode
       when "#intro" then do introMode
+      when "#howe" then do howeMode
 
 apiUrl = (call) ->
   "#{window.location.origin}/api/#{call}"
@@ -86,3 +87,9 @@ colocationMode = ->
 introMode = ->
   console.info "Starting Intro Mode."
   vis.addIntro()
+
+howeMode = ->
+  console.info "Starting Howe Mode."
+  getJson "get-howe.json", "Requesting list of lines..."
+    .then vis.addHowe 
+

@@ -13,6 +13,8 @@ cd ..
 
 To run...
 
+> nodemon index.coffee
+
 > coffee index.coffee
 
 (will open up port 8888 on localhost, defaults to chain visualization)
