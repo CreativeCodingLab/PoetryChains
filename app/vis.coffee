@@ -8,7 +8,7 @@ assert = require "assert"
 module.exports = class Main
 
   scaleText: 0.005
-  speedMultiplier: 0.4
+  speedMultiplier: 0.6
 
   CAMERA_Z = -9
 
@@ -589,7 +589,12 @@ class ChainVis extends Main
       return prev.then (lastObject) =>
           @_addChain curr, lastObject
         .then @_endChain
-    return data.reduce reducer, Promise.resolve()
+    promise = data.reduce reducer, Promise.resolve()
+      .then =>
+        p = @parentObject()
+        c = p.children
+        p.remove.apply p, c
+    return promise
 
   adjustCamera: (chainObject) =>
     bbox = @getBBox chainObject
