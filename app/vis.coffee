@@ -8,7 +8,7 @@ assert = require "assert"
 module.exports = class Main
 
   scaleText: 0.005
-  speedMultiplier: 0.1
+  speedMultiplier: 0.2
 
   CAMERA_Z = -9
 
@@ -807,5 +807,6 @@ class HoweVis extends Main
         @fadeAll(parent.children, 0, 1000)
       .then =>
         parent.remove.apply parent, parent.children
+        @scene.remove(parent)
 
     return promise
