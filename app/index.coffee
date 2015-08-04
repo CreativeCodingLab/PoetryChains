@@ -2,18 +2,6 @@ d3 = require "d3"
 Vis = require "./vis/Main"
 vis = new Vis()
 
-# Bar = require "./vis/Bar"
-# Foo = require "./vis/Foo"
-#
-# # _bar = new Bar()
-# _foo = new Foo()
-#
-# _foo.another()
-
-# Cha = require "./vis/ChainVis"
-# chain = new Cha()
-# vis.speedMultiplier = 0.01
-
 do ->
   font_loaded = new Promise (resolve) ->
     require('./load')(
@@ -43,6 +31,7 @@ getJson = (apiCall, message) ->
     d3.json url, resolve
 
 modeGetter = () ->
+  # order = [ "intro", "chain", "lines", "colocation", "howe", "howe", "howe", "howe", "howe", "howe" ]
   order = [ "intro", "chain", "lines", "colocation", "howe", "howe", "howe", "howe", "howe", "howe" ]
   # order = [ "intro", "chain", "lines", "colocation", "howe", "howe", "howe", "howe" ]
   index = -1
@@ -53,9 +42,11 @@ modeGetter = () ->
 getModeFunc = (mode) ->
   switch mode
     when "intro" then vis.addIntro
-    when "chain" then vis.addChain
+    # when "chain" then vis.addChain
+    when "chain" then (d) -> vis.getVisType("ChainVis").start(d)
     when "colocation" then vis.addNetwork
-    when "lines" then vis.addLines
+    when "lines" then (d) -> vis.getVisType("LinesVis").start(d)
+    # when "lines" then (d) -> vis.getVisType("LinesVis").start(d)
     when "howe" then vis.addHowe
 
 getLastWord = (data, mode) ->
@@ -101,12 +92,14 @@ all = ->
 linesMode = ->
   console.info "Starting Lines Mode."
   getJson "get-lines.json", "Requesting Lines..."
-    .then vis.addLines
+    # .then vis.addLines
+    .then (d) -> vis.startVis("LinesVis", d)
 
 chainMode = ->
   console.info "Starting Chain Mode."
   getJson "get-chain.json", "Requesting poetry chain..."
-    .then vis.addChain
+    # .then vis.addChain
+    .then (d) -> vis.startVis("ChainVis", d)
 
 colocationMode = ->
   console.info "Starting Colocation Mode."

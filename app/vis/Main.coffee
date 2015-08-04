@@ -1,9 +1,8 @@
 window.THREE = require "three"
 createGeometry = require 'three-bmfont-text'
-Shader = require "./shaders/sdf"
-xtend = require 'xtend'
-createOrbitViewer = require('three-orbit-viewer')(THREE)
 assert = require "assert"
+
+Shader = require "./shaders/sdf"
 
 module.exports = class Main
   scaleText: 0.005
@@ -50,24 +49,50 @@ module.exports = class Main
 
     window.addEventListener( 'resize', onWindowResize, false )
 
+    @loadVisClasses()
+
     do animate = =>
       requestAnimationFrame animate
       @renderer.render @scene, @camera
 
-  addChain: (text) =>
-    # NOTE: You must not require ChainVis until Main has been created!
-    # This is true of the other child classes as well
-    ChainVis = require "./ChainVis"
-    chainVis = new ChainVis @scene, @camera, @font, @texture
-    chainVis.start text
+  loadVisClasses: ->
+    @visClass =
+      "ChainVis": require "./ChainVis"
+      "LinesVis": require "./LinesVis"
+
+  getVisType: (className) ->
+    if ! @[className]?
+      @[className] = new @visClass[className](@scene, @camera, @font, @texture)
+    return @[className]
+
+  startVis: (visClass, data) ->
+    if ! @[visClass]?
+      Class = require "./#{visClass}"
+      @[visClass] = new Class @scene, @camera, @font, @texture
+    @[visClass].start data
+
+  # addChain: (text) =>
+  #   # NOTE: You must not require ChainVis until Main has been created!
+  #   # This is true of the other child classes as well
+  #   if ! @chainVis?
+  #     ChainVis = require "./ChainVis"
+  #     @chainVis = new ChainVis @scene, @camera, @font, @texture
+  #   @chainVis.start text
 
   addNetwork: (network) =>
-    colocationVis = new ColocationVis @scene, @camera, @font, @texture
-    colocationVis.start network
+    if ! @colocationVis?
+      @colocationVis = new ColocationVis @scene, @camera, @font, @texture
+    @colocationVis.start network
 
-  addLines: (lines) =>
-    linesVis = new LinesVis @scene, @camera, @font, @texture
-    linesVis.start lines
+  addLines: (data, visClass) =>
+    if ! @linesVis?
+      # LinesVis = require "./LinesVis"
+      visClass = "ChainVis"
+      Class = require "./LinesVis"
+      @linesVis = new Class @scene, @camera, @font, @texture
+    @linesVis.start data
+    # linesVis = new LinesVis @scene, @camera, @font, @texture
+    # linesVis.start lines
 
   addIntro: =>
     introVis = new IntroVis @scene, @camera, @font, @texture
@@ -373,142 +398,142 @@ module.exports = class Main
     # console.log begin, end
     text_object.children.slice begin, end
 
-class LinesVis extends Main
-  lineSpacing: 40
-
-  constructor: (@scene, @camera, @font, @texture) ->
-    console.info "New LinesVis."
-
-  start: (data) ->
-    root = @_addLines data
-    @animateLines root
-      .then =>
-        @fadeAll @lines_object.children, 0, 2000
-          .then =>
-              @lines_object.remove.apply(@lines_object, @lines_object.children)
-
-  ########################
-  # ANIMATE LINES
-  #
-  animateLines: (root) =>
-    # Fade in the root
-    @lines_object.add root._text_object
-    @fadeToArray(1, 1000) root._text_object.children
-      .then => root._text_object._all_here = true
-    @panCameraToObject root._text_object
-    # @adjustCameraWidth root._text_object
-        .then => return @traverse root
-
-  traverse: (node) =>
-    return if ! node.children?
-
-    next_child = node.children.filter((_) -> _.children?)[0]
-
-    # Start promise chain
-    return Promise.resolve()
-      .then =>
-        # Fade out siblings
-        if node._parent?
-          siblings = node._parent.children
-            .filter (child) -> child isnt node
-          parent = node._parent
-          promises = siblings.concat(parent).map (child) =>
-            @fadeToArray(0, 1000) child._text_object.children
-              .then => @lines_object.remove child._text_object
-          return Promise.all promises
-        return true
-      .then =>
-        # Fade in children
-        if next_child?
-          promises = node.children.map (child) =>
-            @lines_object.add child._text_object
-            # Get the array of letters for the target word only
-            children = @getLetterObjectsForWord child._text_object, node.word
-            @fadeToArray(1, 1000) children
-          return Promise.all promises
-      .then =>
-        # Chained fade-in of child lines
-        if next_child?
-          pos = node._positions_array
-          curr = pos.indexOf(node)
-          next = pos.indexOf(next_child)
-          if curr < next
-            fade_array = pos.slice(curr + 1, next + 1)
-          else
-            fade_array = pos.slice(next, curr).reverse()
-          @chainedFadeIn fade_array, 1000
-      .then =>
-        if next_child?
-          # fadeToArray(1, 1000) next_child._text_object.children
-          @panCameraToObject next_child._text_object
-      .then =>
-        @wait 3e3
-      .then =>
-        if next_child?
-          return @traverse next_child
-        else
-          return Promise.resolve()
-
-  _addLines: (lines) =>
-    lines_object = new THREE.Object3D()
-    lines_object.scale.multiplyScalar(@scaleText)
-    lines_object.updateMatrixWorld(true)
-    @scene.add lines_object
-
-    @lines_object = lines_object
-
-    root = linesToTree lines
-
-    @addObjects(lines_object)(root)
-
-    traverse = (parent) =>
-      return if ! parent.children?
-
-      positions_array = d3.shuffle parent.children.concat parent
-      parent_index = positions_array.indexOf parent
-      parent_y = parent._text_object.position.y
-
-      parent._positions_array = positions_array
-
-      positions_array.forEach (node, index) =>
-        offset_from_parent = index - parent_index
-        obj = node._text_object
-        line_height = obj._layout.height + @lineSpacing
-        obj.position.y = parent_y + offset_from_parent * line_height
-
-      parent.children.forEach @alignToNode(parent)
-      parent.children.forEach traverse
-
-    traverse root
-    return root
-
-  addObjects: (lines_object) =>
-    (root) =>
-      traverse = (node) =>
-        node._text_object = @getLineObject(node.line)
-        # lines_object.add node._text_object
-
-        node.children.forEach traverse if node.children
-
-      traverse(root)
-
-  linesToTree = (lines) ->
-    lines = lines.map (line) ->
-      line: line.line
-      word: line.word
-      sIdx: line.sIdx
-      eIdx: line.eIdx
-      children: line.lines
-
-    reducer = (prev, current, index, array) ->
-      prev_index = current.children
-          .map (_) -> _.line
-          .indexOf(prev.line)
-      current.children[prev_index] = prev
-      prev._parent = current
-      current
-
-    lines.reduceRight reducer
+# class LinesVis extends Main
+#   lineSpacing: 40
+#
+#   constructor: (@scene, @camera, @font, @texture) ->
+#     console.info "New LinesVis."
+#
+#   start: (data) ->
+#     root = @_addLines data
+#     @animateLines root
+#       .then =>
+#         @fadeAll @lines_object.children, 0, 2000
+#           .then =>
+#               @lines_object.remove.apply(@lines_object, @lines_object.children)
+#
+#   ########################
+#   # ANIMATE LINES
+#   #
+#   animateLines: (root) =>
+#     # Fade in the root
+#     @lines_object.add root._text_object
+#     @fadeToArray(1, 1000) root._text_object.children
+#       .then => root._text_object._all_here = true
+#     @panCameraToObject root._text_object
+#     # @adjustCameraWidth root._text_object
+#         .then => return @traverse root
+#
+#   traverse: (node) =>
+#     return if ! node.children?
+#
+#     next_child = node.children.filter((_) -> _.children?)[0]
+#
+#     # Start promise chain
+#     return Promise.resolve()
+#       .then =>
+#         # Fade out siblings
+#         if node._parent?
+#           siblings = node._parent.children
+#             .filter (child) -> child isnt node
+#           parent = node._parent
+#           promises = siblings.concat(parent).map (child) =>
+#             @fadeToArray(0, 1000) child._text_object.children
+#               .then => @lines_object.remove child._text_object
+#           return Promise.all promises
+#         return true
+#       .then =>
+#         # Fade in children
+#         if next_child?
+#           promises = node.children.map (child) =>
+#             @lines_object.add child._text_object
+#             # Get the array of letters for the target word only
+#             children = @getLetterObjectsForWord child._text_object, node.word
+#             @fadeToArray(1, 1000) children
+#           return Promise.all promises
+#       .then =>
+#         # Chained fade-in of child lines
+#         if next_child?
+#           pos = node._positions_array
+#           curr = pos.indexOf(node)
+#           next = pos.indexOf(next_child)
+#           if curr < next
+#             fade_array = pos.slice(curr + 1, next + 1)
+#           else
+#             fade_array = pos.slice(next, curr).reverse()
+#           @chainedFadeIn fade_array, 1000
+#       .then =>
+#         if next_child?
+#           # fadeToArray(1, 1000) next_child._text_object.children
+#           @panCameraToObject next_child._text_object
+#       .then =>
+#         @wait 3e3
+#       .then =>
+#         if next_child?
+#           return @traverse next_child
+#         else
+#           return Promise.resolve()
+#
+#   _addLines: (lines) =>
+#     lines_object = new THREE.Object3D()
+#     lines_object.scale.multiplyScalar(@scaleText)
+#     lines_object.updateMatrixWorld(true)
+#     @scene.add lines_object
+#
+#     @lines_object = lines_object
+#
+#     root = linesToTree lines
+#
+#     @addObjects(lines_object)(root)
+#
+#     traverse = (parent) =>
+#       return if ! parent.children?
+#
+#       positions_array = d3.shuffle parent.children.concat parent
+#       parent_index = positions_array.indexOf parent
+#       parent_y = parent._text_object.position.y
+#
+#       parent._positions_array = positions_array
+#
+#       positions_array.forEach (node, index) =>
+#         offset_from_parent = index - parent_index
+#         obj = node._text_object
+#         line_height = obj._layout.height + @lineSpacing
+#         obj.position.y = parent_y + offset_from_parent * line_height
+#
+#       parent.children.forEach @alignToNode(parent)
+#       parent.children.forEach traverse
+#
+#     traverse root
+#     return root
+#
+#   addObjects: (lines_object) =>
+#     (root) =>
+#       traverse = (node) =>
+#         node._text_object = @getLineObject(node.line)
+#         # lines_object.add node._text_object
+#
+#         node.children.forEach traverse if node.children
+#
+#       traverse(root)
+#
+#   linesToTree = (lines) ->
+#     lines = lines.map (line) ->
+#       line: line.line
+#       word: line.word
+#       sIdx: line.sIdx
+#       eIdx: line.eIdx
+#       children: line.lines
+#
+#     reducer = (prev, current, index, array) ->
+#       prev_index = current.children
+#           .map (_) -> _.line
+#           .indexOf(prev.line)
+#       current.children[prev_index] = prev
+#       prev._parent = current
+#       current
+#
+#     lines.reduceRight reducer
 
 class ColocationVis extends Main
   constructor: (@scene, @camera, @font, @texture) ->
@@ -666,130 +691,6 @@ class ColocationVis extends Main
       return parent
 
     network.reduceRight(_makeTree)
-
-# class ChainVis extends Main
-#   constructor: (@scene, @camera, @font, @texture) ->
-#     console.info "New ChainVis."
-#
-#   start: (data) =>
-#     reducer = (prev, curr) =>
-#       return prev.then (lastObject) =>
-#           @_addChain curr, lastObject
-#             .then (last) =>
-#               @wait 10e3
-#                 .then () -> return last
-#             .then @_endChain
-#     promise = data.reduce reducer, Promise.resolve()
-#       .then =>
-#         p = @parentObject()
-#         c = p.children
-#         return @fadeAll p.children, 0, 2000
-#           .then => p.remove.apply p, c
-#     return promise
-#
-#   # adjustCamera: (chainObject) =>
-#   #   bbox = @getBBox chainObject
-#   #   x = bbox.center().x
-#   #   y = bbox.center().y
-#   #   z = bbox.center().z + @getZoomDistanceFromBox bbox, 1.3
-#   #   @panCameraToPosition3 new THREE.Vector3(x,y,z), 1000, true
-#
-#   _endChain: (lastObject) =>
-#     console.info "Done with one chain."
-#     siblings = lastObject.parent.children.filter (child) ->
-#       child isnt lastObject
-#     @fadeAll(siblings, 0, 1000)
-#     @adjustCamera lastObject
-#       .then ->
-#         lastObject.parent.remove.apply(lastObject.parent, siblings)
-#         return lastObject
-#       .then (lastObject) =>
-#         lastWord = lastObject._line.connector
-#         # console.log lastWord
-#         accessor = (obj) -> obj._line.line
-#         lastWordLetters = @getLetterObjectsForWord lastObject, lastWord, accessor
-#         assert lastWordLetters.length is lastWord.length
-#         siblings = @getSiblingsFromSubset lastObject, lastWordLetters
-#         return @fadeToArray(0, 1000)(siblings)
-#         # @fadeToArray(0.2, 500) lastWordLetters
-#       .then =>
-#         lastObject.remove.apply(lastObject, siblings)
-#         @adjustCamera lastObject
-#         lastObject.name = "last_word"
-#         # console.log lastObject._letters()
-#         return lastObject
-#
-#   _addChain: (text, lastObject) =>
-#     processed = @processChain(text)
-#
-#     lineObjects = processed.map (line, index) =>
-#         lineObject = @getLineObject(line.line, index)
-#         lineObject._line = line
-#         return lineObject
-#
-#     if lastObject?
-#       last_word = lastObject._letters().join("")
-#       @alignObjectsByWord lastObject, lineObjects[0], last_word
-#       lineObjects.forEach (obj) -> obj.position.copy lineObjects[0].position
-#
-#     # if lastObject?
-#       # lineObjects[0] = @addToExistingObject lastObject, lineObjects[0]
-#       # lineObjects.forEach (obj) -> obj.position.copy lineObjects[0].position
-#
-#     lineObjects = lineObjects.map (lineObject, index) =>
-#         height = lineObject._layout.height
-#         lineObject.position.y += - (index) * (height + 20)
-#         return lineObject
-#       .map positionLines
-#
-#     chainObject = @parentObject()
-#
-#     ########################
-#     # ANIMATE POETRY CHAIN
-#     reducer = (prev, curr, index, array) =>
-#       prev.then =>
-#         chainObject.add curr
-#         word = curr._line.prev_connector
-#         return if ! word? # word.length is 0
-#         accessor = (obj) -> obj._line.line
-#         one_word_array = @getLetterObjectsForWord curr, word, accessor
-#         bbox = @getBBoxFromSubset curr, one_word_array
-#         return @fadeToArray(1, 1000) one_word_array
-#         # return @panCameraToBBox bbox, 1000
-#       .then =>
-#         @adjustCamera chainObject
-#         @fadeToArray(1, 1000) curr.children
-#             .then -> return curr
-#
-#     first = Promise.resolve()
-#     return lineObjects.reduce reducer, first
-#
-#   positionLines = (line, index, array) ->
-#     return line if index is 0
-#
-#     prev = array[index - 1]
-#     prev_connector_idx = prev._line.connector_index
-#     my_prev_connector_idx = line._line.my_prev_connector_index
-#
-#     line.position.x = prev.position.x
-#     line.position.x += prev.children[prev_connector_idx].position.x
-#     line.position.x -= line.children[my_prev_connector_idx].position.x
-#     line
-#
-#   processChain: (chain) ->
-#     chain.map (obj, i, array) =>
-#       #obj.connector_index = obj.line.indexOf obj.connector
-#       obj.connector_index = obj.line.toLowerCase().indexOf obj.connector.toLowerCase()
-#       if i > 0
-#         prev = array[i-1]
-#         prev_con = prev.connector
-#         # my_prev_idx = obj.line.indexOf prev_con
-#         my_prev_idx = @getWordIndex obj.line, prev_con
-#         prev_idx = prev.connector_index
-#         obj.prev_connector = prev_con
-#         obj.my_prev_connector_index = my_prev_idx
-#         obj.prev_connector_index = prev_idx
-#       obj
 
 class IntroVis extends Main
   constructor: (@scene, @camera, @font, @texture) ->

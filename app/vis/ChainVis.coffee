@@ -2,11 +2,6 @@ Main = require "./Main"
 assert = require "assert"
 
 module.exports = class ChainVis extends Main
-  # constructor: ->
-
-  # doStuff: -> @test()
-
-
   constructor: (@scene, @camera, @font, @texture) ->
     console.info "New ChainVis."
 
@@ -25,13 +20,6 @@ module.exports = class ChainVis extends Main
         return @fadeAll p.children, 0, 2000
           .then => p.remove.apply p, c
     return promise
-
-  # adjustCamera: (chainObject) =>
-  #   bbox = @getBBox chainObject
-  #   x = bbox.center().x
-  #   y = bbox.center().y
-  #   z = bbox.center().z + @getZoomDistanceFromBox bbox, 1.3
-  #   @panCameraToPosition3 new THREE.Vector3(x,y,z), 1000, true
 
   _endChain: (lastObject) =>
     console.info "Done with one chain."
