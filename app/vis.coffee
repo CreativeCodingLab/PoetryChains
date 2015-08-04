@@ -8,7 +8,7 @@ assert = require "assert"
 module.exports = class Main
 
   scaleText: 0.005
-  speedMultiplier: 0.2
+  speedMultiplier: 0.9
 
   CAMERA_Z = -9
 
