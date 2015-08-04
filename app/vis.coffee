@@ -533,21 +533,26 @@ class ColocationVis extends Main
       text_object.rotateX -@rotation
       network_object.add text_object
 
-      delay = 500
+      delay = 1000
 
       ################################
       # ANIMATE COLOCATION NETWORK
       #
       # console.log index
-      return @wait(index * delay)
+      return Promise.resolve().then =>
+          # if node.parent
+          #   console.log node
+          #   return @wait(Math.random() * delay)
+          return
         .then =>
           @fadeToArray(1, 1000) text_object.children
         .then =>
           if node.children
             # return faded_in.then =>
             return Promise.resolve().then =>
-                if array
-                  return @wait(delay * array.length)
+                # if array
+                #   return @wait(delay * array.length)
+                return
               .then =>
                 @panCameraToObject(text_object)
               .then =>
@@ -560,9 +565,11 @@ class ColocationVis extends Main
                     @fadeToArray(0, 1000) sibling._text_object.children
                       .then -> network_object.remove(sibling._text_object)
                   return Promise.all promises
-              .then => @wait 5e3
-              .then ->
-                promises = node.children.map traverse
+              .then => @wait 2e3
+              .then =>
+                promises = node.children.map (child) =>
+                  @wait(Math.random() * delay)
+                    .then => traverse(child)
                 return Promise.all promises
           else
             return Promise.resolve()
