@@ -2,7 +2,7 @@ d3 = require "d3"
 Vis = require "./vis"
 
 vis = new Vis()
-vis.speedMultiplier
+vis.speedMultiplier = 0.1
 
 do ->
   font_loaded = new Promise (resolve) ->
@@ -34,10 +34,18 @@ getJson = (apiCall, message) ->
 
 modeGetter = () ->
   order = [ "intro", "chain", "lines", "colocation", "howe" ]
-  index = 0
+  index = -1
   ->
     if ++index is order.length then index = 0
     return order[index]
+
+getModeFunc = (mode) ->
+  switch mode
+    when "intro" then vis.addIntro
+    when "chain" then vis.addChain
+    when "colocation" then vis.addNetwork
+    when "lines" then vis.addLines
+    when "howe" then vis.addHowe
 
 getLastWord = (data, mode) ->
   if mode is "chain"
@@ -47,27 +55,77 @@ getLastWord = (data, mode) ->
     return data[data.length-1].word
   if mode is "colocation"
     return data[data.length-1].word
+  else
+    return undefined
+
+getModeData = (mode, word) ->
+  if mode is "intro"
+    return Promise.resolve()
+  else if word?
+    return getJson "get-#{mode}.json?word=#{word}", "Requesting: #{mode}"
+  else
+    return getJson "get-#{mode}.json", "Requesting: #{mode}"
 
 all = ->
-  getNext = modeGetter()
+  getNextMode = modeGetter()
   console.info "Starting all."
 
-  mode = getNext()
-  console.info "mode: #{mode}"
-  got_first = getJson "get-#{mode}.json", "Requesting: #{mode}"
+  mode = getNextMode()
+  got_first_data = getModeData mode
+    .then (data) -> repeat mode, data
 
-  doNextMode = (d) ->
-    switch mode
-      when "chain" then vis.addChain d
-    lastWord = getLastWord(d, mode)
-    console.log mode
-    console.log d
-    console.log lastWord
-    mode = getNext()
-    getJson "get-#{mode}.json?word=#{lastWord}", "Requesting: #{mode}"
-      .then doNextMode
+  repeat = (mode, data) ->
+    console.info "Mode: #{mode}"
+    current_mode_done = getModeFunc(mode)(data)
 
-  got_first.then doNextMode
+    lastWord = getLastWord(data, mode)
+    next_mode = getNextMode()
+    got_next_mode_data = getModeData next_mode, lastWord
+
+    Promise.all([got_next_mode_data, current_mode_done])
+      .then (array) ->
+        next_data = array[0]
+        repeat next_mode, next_data
+
+  # current_mode_done = got_first_data
+  #   .then (d) -> return getModeFunc(mode)(d)
+  #
+  # current_mode_done
+  #   .then -> console.info "#{mode} mode is done."
+  #
+  # next_mode = getNextMode()
+  #
+  # got_next_data = got_first_data
+  #   .then (d) ->
+  #     lastWord = getLastWord(d, mode)
+  #     return getModeData next_mode, lastWord
+  #
+  # Promise.all([got_next_data, current_mode_done])
+  #   .then (array) ->
+  #     next_data = array[0]
+  #     console.log next_data
+  #     return getModeFunc(next_mode)(next_data)
+  #   .then (last_data) ->
+  #     console.info "#{next_mode} mode is done."
+  #     console.log last_data
+
+
+  # mode = getNext()
+  # console.info "mode: #{mode}"
+  # got_first = getJson "get-#{mode}.json", "Requesting: #{mode}"
+  #
+  # doNextMode = (d) ->
+  #   switch mode
+  #     when "chain" then vis.addChain d
+  #   lastWord = getLastWord(d, mode)
+  #   console.log mode
+  #   console.log d
+  #   console.log lastWord
+  #   mode = getNext()
+  #   getJson "get-#{mode}.json?word=#{lastWord}", "Requesting: #{mode}"
+  #     .then doNextMode
+  #
+  # got_first.then doNextMode
 
 linesMode = ->
   console.info "Starting Lines Mode."
@@ -77,8 +135,7 @@ linesMode = ->
 chainMode = ->
   console.info "Starting Chain Mode."
   getJson "get-chain.json", "Requesting poetry chain..."
-    .then (d) ->
-      vis.addChain d
+    .then vis.addChain
 
 colocationMode = ->
   console.info "Starting Colocation Mode."
@@ -88,7 +145,6 @@ colocationMode = ->
 introMode = ->
   console.info "Starting Intro Mode."
   vis.addIntro()
-    # .then => debugger
 
 howeMode = ->
   console.info "Starting Howe Mode."

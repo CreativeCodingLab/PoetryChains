@@ -578,7 +578,7 @@ class ChainVis extends Main
     @panCameraToPosition3 new THREE.Vector3(x,y,z), 1000, true
 
   _endChain: (lastObject) =>
-    console.info "Done with chain."
+    console.info "Done with one chain."
     siblings = lastObject.parent.children.filter (child) ->
       child isnt lastObject
     @fadeAll(siblings, 0, 1000)
@@ -680,11 +680,6 @@ class IntroVis extends Main
   start: =>
     return @_addIntro()
 
-  fadeAll: (parent) =>
-      promises = parent.children.map (child) =>
-        return @fadeToArray(1, 2500) child.children
-      return Promise.all(promises)
-
   _addIntro: ->
     text_title = @getLineObject("Poetry Chains & Colocation Nets")
     text_author = @getLineObject("by Angus Forbes, with Paul Murray")
@@ -727,7 +722,7 @@ class IntroVis extends Main
 
     parent.updateMatrixWorld(true)
 
-    faded = @fadeAll(parent)
+    faded = @fadeAll(parent.children, 1, 2500)
 
     bbox = @getBBox parent
     x = bbox.center().x - 0.2
@@ -736,6 +731,7 @@ class IntroVis extends Main
     panned = @panCameraToPosition3 new THREE.Vector3(x,y,z), 1, true
 
     return Promise.all([faded, panned]).then => @wait 5000
+      .then => @fadeAll(parent.children, 0, 1000)
 
 
 class HoweVis extends Main
@@ -744,12 +740,6 @@ class HoweVis extends Main
 
   start: (data) =>
     @_addHowe data
-
-
-  fadeAll: (parent) =>
-      promises = parent.children.map (child) =>
-        return @fadeToArray(1, 1000) child.children
-      return Promise.all(promises)
 
   _addHowe: (text) =>
 
