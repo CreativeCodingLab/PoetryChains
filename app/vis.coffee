@@ -322,7 +322,9 @@ class LinesVis extends Main
     root = @_addLines data
     @animateLines root
       .then =>
-        @lines_object.remove.apply(@lines_object, @lines_object.children)
+        @fadeAll @lines_object.children, 0, 2000
+          .then =>
+              @lines_object.remove.apply(@lines_object, @lines_object.children)
 
   ########################
   # ANIMATE LINES
@@ -593,7 +595,8 @@ class ChainVis extends Main
       .then =>
         p = @parentObject()
         c = p.children
-        p.remove.apply p, c
+        return @fadeAll p.children, 0, 2000
+          .then => p.remove.apply p, c
     return promise
 
   adjustCamera: (chainObject) =>

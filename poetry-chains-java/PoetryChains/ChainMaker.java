@@ -54,9 +54,9 @@ public class ChainMaker {
   {
     List<PoetryChain> chains;
     if (startWord == null) {
-      chains = Parser.connectWords(5, 10, 1);
+      chains = Parser.connectWords(5, 10, 2);
     } else {
-      chains = Parser.connectWords(startWord, 5, 10, 1);
+      chains = Parser.connectWords(startWord, 5, 10, 2);
     }
     if (OUTPUT_JSON) {
 
