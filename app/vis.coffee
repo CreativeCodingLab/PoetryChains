@@ -554,9 +554,11 @@ class ColocationVis extends Main
             return Promise.resolve().then =>
                 # if array
                 #   return @wait(delay * array.length)
+                # return @wait(delay * 10)
                 return
               .then =>
-                @panCameraToObject(text_object)
+                @wait(delay * 2)
+                  .then => @panCameraToObject(text_object)
               .then =>
                 if node.parent?
                   siblings = node.parent.children.filter (child) ->
@@ -567,7 +569,7 @@ class ColocationVis extends Main
                     @fadeToArray(0, 1000) sibling._text_object.children
                       .then -> network_object.remove(sibling._text_object)
                   return Promise.all promises
-              .then => @wait 2e3
+              .then => @wait 1e3
               .then =>
                 promises = node.children.map (child) =>
                   @wait(Math.random() * delay)
