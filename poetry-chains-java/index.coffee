@@ -25,4 +25,5 @@ module.exports = ->
         poetryChain: -> runScript("./run_poetry_chain.sh")
         colocationNet: -> runScript("./run_colocation_net.sh")
         lineMaker: -> runScript("./run_lines.sh")
+        howeMaker: -> runScript("./run_howe.sh")
     }

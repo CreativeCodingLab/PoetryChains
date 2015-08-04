@@ -68,6 +68,11 @@ module.exports = class Main
   addIntro: =>
     introVis = new IntroVis @scene, @camera, @font, @texture
     introVis.start()
+  
+  addHowe: (text) =>
+    howeVis = new HoweVis @scene, @camera, @font, @texture
+    howeVis.start text
+
 
   setTexture: (@texture) ->
     maxAni = @renderer.getMaxAnisotropy()
@@ -189,7 +194,7 @@ module.exports = class Main
     (array) ->
       new Promise (resolve) ->
         selection = d3.selectAll array
-        addFadeOpacityTransition(to, 1000)(selection)
+        addFadeOpacityTransition(to, duration)(selection)
           .each "end", resolve
 
   fadeToArray: fadeToArray
@@ -199,14 +204,25 @@ module.exports = class Main
       .range([0, Math.PI * 2])
 
   getZoomDistanceFromBox: (box, distance_scale) ->
-    # Calculate horizontal field of view
-    # See: github.com/mrdoob/three.js/issues/1239
-    v_fov = _radianScale @camera.fov
-    h_fov = Math.atan( Math.tan(v_fov/2) * @camera.aspect )
-
+    
     # See: stackoverflow.com/questions/2866350/move-camera-to-fit-3d-scene
     width = Math.abs(box.min.x - box.max.x)
-    return -(width / 2) / Math.tan(h_fov) * distance_scale
+    height = Math.abs(box.min.y - box.max.y)
+    
+    if width > height
+      # Calculate horizontal field of view
+      # See: github.com/mrdoob/three.js/issues/1239
+      v_fov = _radianScale @camera.fov
+      h_fov = Math.atan( Math.tan(v_fov/2) * @camera.aspect )
+         
+      return -(width / 2) / Math.tan(h_fov) * distance_scale
+    else
+      v_fov = _radianScale @camera.fov
+      h_fov = Math.atan( Math.tan(v_fov/2) * @camera.aspect )
+         
+      return -(height / 2) / Math.tan(h_fov) * distance_scale
+     
+
 
   getWordIndex = (line, word) ->
     expression = if word is "—" then word else "\\b#{word}\\b"
@@ -568,7 +584,6 @@ class ChainVis extends Main
       obj
 
 
-
 class IntroVis extends Main
   constructor: (@scene, @camera, @font, @texture) ->
     console.info "New IntroVis."
@@ -576,22 +591,114 @@ class IntroVis extends Main
   start: =>
     @_addIntro()
 
+  fadeAll: (parent) => 
+      promises = parent.children.map (child) =>
+        return @fadeToArray(1, 2500) child.children
+      return Promise.all(promises)
+
   _addIntro: ->
-    lineObject = @getLineObject("Intro Hello Chains!")
+    text_title = @getLineObject("Poetry Chains & Colocation Nets")
+    text_author = @getLineObject("by Angus Forbes, with Paul Murray")
+    
+
+    lineObject2 = @getLineObject("A series of animated explorations")
+    lineObject3 = @getLineObject("through the collected poems of Emily Dickinson")
+   
+    text_title.position.y = 30;
+    text_author.position.y = text_title.position.y - text_title._layout.height - 50
+    text_author.position.x = text_title.position.x - 50
+    lineObject2.position.y = text_author.position.y - text_author._layout.height - 180
+    lineObject2.position.x = text_title.position.x - 10
+
+    lineObject3.position.y = lineObject2.position.y - lineObject2._layout.height - 10
+    lineObject3.position.x = text_title.position.x - 50
+    
+    text_title.scale.multiplyScalar(1.5) 
+    text_author.scale.multiplyScalar(0.7) 
+    lineObject2.scale.multiplyScalar(0.7) 
+    lineObject3.scale.multiplyScalar(0.7) 
+ 
     # The objects must be scaled
     # but you can also add everything to a parent object, and scale that:
 
-    # parent = new THREE.Object3D()
-    # parent.scale.multiplyScalar(@scaleText)
-    # parent.add(lineObject)
-    # @scene.add(parent)
+    parent = new THREE.Object3D()
+    parent.add(text_title)
+    parent.add(text_author)
+    parent.add(lineObject2)
+    parent.add(lineObject3)
+    parent.scale.multiplyScalar(@scaleText)
 
-    lineObject.scale.multiplyScalar(@scaleText)
+    @scene.add(parent)
 
-    # The lineObject has "children", which is an array of letter objects
-    # They all start out at opacity zero.
-    # @fadeToArray(1, 1000) means "fade each thing in this array to 1, in 1000ms"
+    parent.updateMatrixWorld(true)
 
-    @fadeToArray(1, 1000)(lineObject.children)
+    @fadeAll(parent)
 
-    @scene.add(lineObject)
+    bbox = @getBBox parent
+    x = bbox.center().x - 0.2
+    y = bbox.center().y
+    z = bbox.center().z + @getZoomDistanceFromBox bbox, 1.2
+    @panCameraToPosition3 new THREE.Vector3(x,y,z), 1, true
+    
+
+
+
+class HoweVis extends Main
+  constructor: (@scene, @camera, @font, @texture) ->
+    console.info "New HoweVis."
+
+  start: (data) =>
+    @_addHowe data
+
+
+  fadeAll: (parent) => 
+      promises = parent.children.map (child) =>
+        return @fadeToArray(1, 1000) child.children
+      return Promise.all(promises)
+
+  _addHowe: (text) =>
+
+
+    parent = new THREE.Object3D()
+    parent.updateMatrixWorld(true)
+
+    x = (Math.random() * 1000.0)
+    y = (Math.random() * 1000.0)
+    #z = (Math.random() * 100.0)
+    rz = Math.random() * Math.PI * 2.0
+    lh = Math.random() * 150
+    numlines = 0
+
+    for line in text
+      lineobj = @getLineObject(line)
+
+      if Math.random() > 0.8 or numlines > 6
+        x = (Math.random() * 1000.0)
+        y = (Math.random() * 500.0)
+        #z = (Math.random() * 100.0)
+        rz = Math.random() * Math.PI * 2.0
+        lh = Math.random() * 150
+        numlines = 0
+      else 
+        y -= lh
+
+      lineobj.rotateZ(rz)
+      lineobj.translateX(x)
+      lineobj.translateY(y)
+      numlines = numlines + 1
+      parent.add(lineobj)
+      
+   
+    parent.scale.multiplyScalar(@scaleText)
+
+    @scene.add(parent)
+    @fadeAll(parent)
+
+    bbox = @getBBox parent
+    x = bbox.center().x
+    y = bbox.center().y
+    z = bbox.center().z + @getZoomDistanceFromBox bbox, 2.5
+    @panCameraToPosition3 new THREE.Vector3(x,y,z), 1000, true
+
+
+    

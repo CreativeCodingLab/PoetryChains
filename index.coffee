@@ -27,6 +27,11 @@ app.get("/api/get-lines.json", (request, response) ->
         response.json(data)
 )
 
+app.get("/api/get-howe.json", (request, response) ->
+    poetryFunctions().howeMaker().then (data) ->
+        response.json(data)
+)
+
 app.get "/app", browserify("./app/index.coffee")
 
 static_path = path.resolve __dirname, "static"
