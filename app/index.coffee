@@ -2,7 +2,7 @@ d3 = require "d3"
 Vis = require "./vis"
 
 vis = new Vis()
-vis.speedMultiplier = 0.1
+# vis.speedMultiplier = 0.01
 
 do ->
   font_loaded = new Promise (resolve) ->
@@ -86,46 +86,6 @@ all = ->
       .then (array) ->
         next_data = array[0]
         repeat next_mode, next_data
-
-  # current_mode_done = got_first_data
-  #   .then (d) -> return getModeFunc(mode)(d)
-  #
-  # current_mode_done
-  #   .then -> console.info "#{mode} mode is done."
-  #
-  # next_mode = getNextMode()
-  #
-  # got_next_data = got_first_data
-  #   .then (d) ->
-  #     lastWord = getLastWord(d, mode)
-  #     return getModeData next_mode, lastWord
-  #
-  # Promise.all([got_next_data, current_mode_done])
-  #   .then (array) ->
-  #     next_data = array[0]
-  #     console.log next_data
-  #     return getModeFunc(next_mode)(next_data)
-  #   .then (last_data) ->
-  #     console.info "#{next_mode} mode is done."
-  #     console.log last_data
-
-
-  # mode = getNext()
-  # console.info "mode: #{mode}"
-  # got_first = getJson "get-#{mode}.json", "Requesting: #{mode}"
-  #
-  # doNextMode = (d) ->
-  #   switch mode
-  #     when "chain" then vis.addChain d
-  #   lastWord = getLastWord(d, mode)
-  #   console.log mode
-  #   console.log d
-  #   console.log lastWord
-  #   mode = getNext()
-  #   getJson "get-#{mode}.json?word=#{lastWord}", "Requesting: #{mode}"
-  #     .then doNextMode
-  #
-  # got_first.then doNextMode
 
 linesMode = ->
   console.info "Starting Lines Mode."

@@ -8,7 +8,7 @@ assert = require "assert"
 module.exports = class Main
 
   scaleText: 0.005
-  speedMultiplier: 0.5
+  speedMultiplier: 0.1
 
   CAMERA_Z = -9
 
@@ -200,7 +200,9 @@ module.exports = class Main
     (selection) =>
       selection.transition()
         .duration duration * @speedMultiplier
-        .delay (_, i) -> i * 10
+        .delay (_, i) =>
+          del = i * 10 * @speedMultiplier
+          return del
         .tween "fadeOpacity", ->
           # if target? then debugger
           obj = target || this
@@ -321,52 +323,55 @@ class LinesVis extends Main
     @lines_object.add root._text_object
     @fadeToArray(1, 1000) root._text_object.children
     @panCameraToObject root._text_object
-        .then -> traverse root
+        .then => return @traverse root
 
-    traverse = (node) =>
-      return if ! node.children?
+  traverse: (node) =>
+    return if ! node.children?
 
-      next_child = node.children.filter((_) -> _.children?)[0]
+    next_child = node.children.filter((_) -> _.children?)[0]
 
-      # Start promise chain
-      Promise.resolve()
-        .then =>
-          # Fade out siblings
-          if node._parent?
-            siblings = node._parent.children
-              .filter (child) -> child isnt node
-            parent = node._parent
-            promises = siblings.concat(parent).map (child) =>
-              @fadeToArray(0, 1000) child._text_object.children
-                .then => @lines_object.remove child._text_object
-            return Promise.all promises
-          return true
-        .then =>
-          # Fade in children
-          if next_child?
-            promises = node.children.map (child) =>
-              @lines_object.add child._text_object
-              # Get the array of letters for the target word only
-              children = @getLetterObjectsForWord child._text_object, node.word
-              @fadeToArray(1, 1000) children
-            return Promise.all promises
-        .then =>
-          # Chained fade-in of child lines
-          if next_child?
-            pos = node._positions_array
-            curr = pos.indexOf(node)
-            next = pos.indexOf(next_child)
-            if curr < next
-              fade_array = pos.slice(curr + 1, next + 1)
-            else
-              fade_array = pos.slice(next, curr).reverse()
-            @chainedFadeIn fade_array, 1000
-        .then =>
-          if next_child?
-            # fadeToArray(1, 1000) next_child._text_object.children
-            @panCameraToObject next_child._text_object
-        .then ->
-          traverse next_child unless ! next_child?
+    # Start promise chain
+    return Promise.resolve()
+      .then =>
+        # Fade out siblings
+        if node._parent?
+          siblings = node._parent.children
+            .filter (child) -> child isnt node
+          parent = node._parent
+          promises = siblings.concat(parent).map (child) =>
+            @fadeToArray(0, 1000) child._text_object.children
+              .then => @lines_object.remove child._text_object
+          return Promise.all promises
+        return true
+      .then =>
+        # Fade in children
+        if next_child?
+          promises = node.children.map (child) =>
+            @lines_object.add child._text_object
+            # Get the array of letters for the target word only
+            children = @getLetterObjectsForWord child._text_object, node.word
+            @fadeToArray(1, 1000) children
+          return Promise.all promises
+      .then =>
+        # Chained fade-in of child lines
+        if next_child?
+          pos = node._positions_array
+          curr = pos.indexOf(node)
+          next = pos.indexOf(next_child)
+          if curr < next
+            fade_array = pos.slice(curr + 1, next + 1)
+          else
+            fade_array = pos.slice(next, curr).reverse()
+          @chainedFadeIn fade_array, 1000
+      .then =>
+        if next_child?
+          # fadeToArray(1, 1000) next_child._text_object.children
+          @panCameraToObject next_child._text_object
+      .then =>
+        if next_child?
+          return @traverse next_child
+        else
+          return Promise.resolve()
 
   _addLines: (lines) =>
     lines_object = new THREE.Object3D()
@@ -447,12 +452,12 @@ class ColocationVis extends Main
     root = makeTree network
     root = setNetworkPositions root, radius
 
-    @animate root, network_object
+    return @animate root, network_object
 
   animate: (root, network_object) ->
 
     traverse = (node) =>
-      return if ! node.position?
+      # return Promise.resolve() if ! node.position?
 
       node = @setTextObject(node)
       text_object = node._text_object
@@ -465,7 +470,7 @@ class ColocationVis extends Main
       faded_in = @fadeToArray(1, 1000) text_object.children
 
       if node.children
-        faded_in.then =>
+        return faded_in.then =>
           @panCameraToObject(text_object)
         .then =>
           if node.parent?
@@ -478,9 +483,12 @@ class ColocationVis extends Main
                 .then -> network_object.remove(sibling._text_object)
             return Promise.all promises
         .then ->
-          node.children.forEach traverse
+          promises = node.children.map traverse
+          return Promise.all promises
+      else
+        return Promise.resolve()
 
-    traverse(root)
+    return traverse(root)
 
   setTextObject: (node) =>
     text_object = @getLineObject(node.val)
@@ -561,14 +569,10 @@ class ChainVis extends Main
 
   start: (data) =>
     reducer = (prev, curr) =>
-      prev.then (lastObject) =>
+      return prev.then (lastObject) =>
           @_addChain curr, lastObject
         .then @_endChain
-    data.reduce reducer, Promise.resolve()
-    # @_addChain data[0]
-    #   .then @_endChain
-    #   .then (lastObject) ->
-    #     console.info "Done again."
+    return data.reduce reducer, Promise.resolve()
 
   adjustCamera: (chainObject) =>
     bbox = @getBBox chainObject
@@ -739,7 +743,7 @@ class HoweVis extends Main
     console.info "New HoweVis."
 
   start: (data) =>
-    @_addHowe data
+    return @_addHowe data
 
   _addHowe: (text) =>
 
@@ -790,3 +794,11 @@ class HoweVis extends Main
         return @panCameraToPosition3 new THREE.Vector3(x,y,z), 1000, true
 
     promise = lines.reduce reduction, Promise.resolve()
+      .then =>
+        @wait 3000
+      .then =>
+        @fadeAll(parent.children, 0, 1000)
+      .then =>
+        parent.remove.apply parent, parent.children
+
+    return promise
