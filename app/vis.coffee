@@ -8,7 +8,7 @@ assert = require "assert"
 module.exports = class Main
 
   scaleText: 0.005
-  speedMultiplier: 0.2
+  speedMultiplier: 0.9
 
   CAMERA_Z = -9
 
@@ -114,9 +114,16 @@ module.exports = class Main
     glyph_positions = line_layout.glyphs.map (g) -> g.position
 
     letterObjects = line.split("").map (letter, index) =>
-      assert glyph_positions[index], "#{line} -- #{letter}"
+      # assert glyph_positions[index], "#{line} -- #{letter}"
+      if ! glyph_positions[index]
+        console.error "no glyph for #{letter}"
       letter_mesh = @getMeshFromString letter
-      letter_mesh.position.x = - glyph_positions[index][0]
+
+      if glyph_positions[index]
+        letter_mesh.position.x = - glyph_positions[index][0]
+      else
+        letter_mesh.position.x = 0
+
       letter_mesh._letter = letter
       letter_mesh
 
@@ -314,6 +321,10 @@ class LinesVis extends Main
   start: (data) ->
     root = @_addLines data
     @animateLines root
+      .then =>
+        @fadeAll @lines_object.children, 0, 2000
+          .then =>
+              @lines_object.remove.apply(@lines_object, @lines_object.children)
 
   ########################
   # ANIMATE LINES
@@ -460,6 +471,7 @@ class ColocationVis extends Main
         @fadeAll network_object.children, 0, 1000
       .then =>
         network_object.remove.apply network_object, network_object.children
+        @scene.remove network_object
 
   animate: (root, network_object) ->
 
@@ -579,7 +591,13 @@ class ChainVis extends Main
       return prev.then (lastObject) =>
           @_addChain curr, lastObject
         .then @_endChain
-    return data.reduce reducer, Promise.resolve()
+    promise = data.reduce reducer, Promise.resolve()
+      .then =>
+        p = @parentObject()
+        c = p.children
+        return @fadeAll p.children, 0, 2000
+          .then => p.remove.apply p, c
+    return promise
 
   adjustCamera: (chainObject) =>
     bbox = @getBBox chainObject
