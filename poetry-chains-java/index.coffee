@@ -7,7 +7,15 @@ replaceEmDash = (text) ->
   text = text.replace /⊔/g, "—"
   text = text.replace /--/g, "—"
 
+
 runScript = (scriptPath) ->
+  (word) ->
+    if word?
+      _runScript("#{scriptPath} #{word}")
+    else
+      _runScript(scriptPath)
+
+_runScript = (scriptPath) ->
   java_directory = path.resolve(__dirname, "PoetryChains")
   command = "cd #{java_directory}; #{scriptPath}"
 
@@ -22,7 +30,7 @@ runScript = (scriptPath) ->
 
 module.exports = ->
   {
-    poetryChain: -> runScript("./run_poetry_chain.sh")
-    colocationNet: -> runScript("./run_colocation_net.sh")
-    lineMaker: -> runScript("./run_lines.sh")
+    poetryChain: (word) -> runScript("./run_poetry_chain.sh")(word)
+    colocationNet: (word) -> runScript("./run_colocation_net.sh")(word)
+    lineMaker: (word) -> runScript("./run_lines.sh")(word)
   }

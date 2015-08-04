@@ -23,7 +23,8 @@ app.get("/api/get-colocation.json", (request, response) ->
 )
 
 app.get("/api/get-lines.json", (request, response) ->
-  poetryFunctions().lineMaker().then (data) ->
+  word = request.query.word
+  poetryFunctions().lineMaker(word).then (data) ->
     response.json(data)
 )
 
