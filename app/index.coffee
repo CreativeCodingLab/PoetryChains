@@ -33,8 +33,8 @@ getJson = (apiCall, message) ->
     d3.json url, resolve
 
 modeGetter = () ->
-  # order = [ "intro", "chain", "lines", "colocation", "howe", "howe", "howe", "howe", "howe" ]
-  order = [ "intro", "chain", "lines", "colocation", "howe", "howe" ]
+  order = [ "intro", "chain", "lines", "colocation", "howe", "howe", "howe", "howe", "howe", "howe" ]
+  # order = [ "intro", "chain", "lines", "colocation", "howe", "howe", "howe", "howe" ]
   index = -1
   ->
     if ++index is order.length then index = 0

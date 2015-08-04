@@ -143,6 +143,21 @@ module.exports = class Main
     return parent.children.filter (child) ->
       return array.indexOf(child) < 0
 
+  # getBBoxFromArray: (array) ->
+  #   cloned = array.map (each) -> each.clone()
+  #   temp = {}
+
+  getObjectFromSubset: (parent, array) ->
+    subset = parent.children
+      .filter (child) ->
+        array.indexOf(child) > -1
+      .map (child) ->
+        child.clone()
+
+    clone = parent.clone()
+    clone.children = subset
+    return clone
+
   getBBoxFromSubset: (parent, array) ->
     subset = parent.children
       .filter (child) ->
@@ -190,9 +205,25 @@ module.exports = class Main
   panCameraToBBox: (box, duration) =>
     @panCameraToPosition3 box.center(), duration
 
+  adjustCamera: (chainObject) =>
+    bbox = @getBBox chainObject
+    x = bbox.center().x
+    y = bbox.center().y
+    z = bbox.center().z + @getZoomDistanceFromBox bbox, 1.3
+    @panCameraToPosition3 new THREE.Vector3(x,y,z), 1000, true
+
+  adjustCameraWidth: (chainObject) =>
+    bbox = @getBBox chainObject
+    x = bbox.center().x
+    y = bbox.center().y
+    z = bbox.center().z + @getZoomDistanceFromBoxWidth bbox, 1.3
+    @panCameraToPosition3 new THREE.Vector3(x,y,z), 1000, true
+
   wait: (duration) =>
     return new Promise (resolve) =>
-      setTimeout(resolve, duration * @speedMultiplier)
+      func = () -> resolve()
+      dur = duration * @speedMultiplier
+      setTimeout(func, dur)
 
   zoomCameraToPosition: (target, duration) =>
     new Promise (resolve) =>
@@ -235,6 +266,11 @@ module.exports = class Main
   chainedFadeIn: (array, duration) ->
     reduction = (promise, curr, index, array) =>
       promise.then =>
+        curr._text_object._all_here = true
+        par = curr._text_object.parent
+        subset = par.children.filter (d) -> d._all_here
+        obj = @getObjectFromSubset par, subset
+        # @adjustCameraWidth obj
         @fadeToArray(1, 1000) curr._text_object.children
 
     promise = array.reduce reduction, Promise.resolve()
@@ -242,6 +278,17 @@ module.exports = class Main
   _radianScale = d3.scale.linear()
       .domain([0, 360])
       .range([0, Math.PI * 2])
+
+  getZoomDistanceFromBoxWidth: (box, distance_scale) ->
+    # See: stackoverflow.com/questions/2866350/move-camera-to-fit-3d-scene
+    width = Math.abs(box.min.x - box.max.x)
+
+    # Calculate horizontal field of view
+    # See: github.com/mrdoob/three.js/issues/1239
+    v_fov = _radianScale @camera.fov
+    h_fov = Math.atan( Math.tan(v_fov/2) * @camera.aspect )
+
+    return -(width / 2) / Math.tan(h_fov) * distance_scale
 
   getZoomDistanceFromBox: (box, distance_scale) ->
 
@@ -346,7 +393,9 @@ class LinesVis extends Main
     # Fade in the root
     @lines_object.add root._text_object
     @fadeToArray(1, 1000) root._text_object.children
+      .then => root._text_object._all_here = true
     @panCameraToObject root._text_object
+    # @adjustCameraWidth root._text_object
         .then => return @traverse root
 
   traverse: (node) =>
@@ -391,6 +440,8 @@ class LinesVis extends Main
         if next_child?
           # fadeToArray(1, 1000) next_child._text_object.children
           @panCameraToObject next_child._text_object
+      .then =>
+        @wait 3e3
       .then =>
         if next_child?
           return @traverse next_child
@@ -488,37 +539,57 @@ class ColocationVis extends Main
 
   animate: (root, network_object) ->
 
-    traverse = (node) =>
+    traverse = (node, index, array) =>
       # return Promise.resolve() if ! node.position?
+      # console.log array
 
       node = @setTextObject(node)
       text_object = node._text_object
       text_object.rotateX -@rotation
       network_object.add text_object
 
+      delay = 1000
+
       ################################
       # ANIMATE COLOCATION NETWORK
       #
-      faded_in = @fadeToArray(1, 1000) text_object.children
-
-      if node.children
-        return faded_in.then =>
-          @panCameraToObject(text_object)
+      # console.log index
+      return Promise.resolve().then =>
+          # if node.parent
+          #   console.log node
+          #   return @wait(Math.random() * delay)
+          return
         .then =>
-          if node.parent?
-            siblings = node.parent.children.filter (child) ->
-              return child._text_object isnt text_object
-            if node.parent.parent
-              siblings = siblings.concat(node.parent.parent)
-            promises = siblings.map (sibling) =>
-              @fadeToArray(0, 1000) sibling._text_object.children
-                .then -> network_object.remove(sibling._text_object)
-            return Promise.all promises
-        .then ->
-          promises = node.children.map traverse
-          return Promise.all promises
-      else
-        return Promise.resolve()
+          @fadeToArray(1, 1000) text_object.children
+        .then =>
+          if node.children
+            # return faded_in.then =>
+            return Promise.resolve().then =>
+                # if array
+                #   return @wait(delay * array.length)
+                # return @wait(delay * 10)
+                return
+              .then =>
+                @wait(delay * 2)
+                  .then => @panCameraToObject(text_object)
+              .then =>
+                if node.parent?
+                  siblings = node.parent.children.filter (child) ->
+                    return child._text_object isnt text_object
+                  if node.parent.parent
+                    siblings = siblings.concat(node.parent.parent)
+                  promises = siblings.map (sibling) =>
+                    @fadeToArray(0, 1000) sibling._text_object.children
+                      .then -> network_object.remove(sibling._text_object)
+                  return Promise.all promises
+              .then => @wait 1e3
+              .then =>
+                promises = node.children.map (child) =>
+                  @wait(Math.random() * delay)
+                    .then => traverse(child)
+                return Promise.all promises
+          else
+            return Promise.resolve()
 
     return traverse(root)
 
@@ -603,7 +674,10 @@ class ChainVis extends Main
     reducer = (prev, curr) =>
       return prev.then (lastObject) =>
           @_addChain curr, lastObject
-        .then @_endChain
+            .then (last) =>
+              @wait 10e3
+                .then () -> return last
+            .then @_endChain
     promise = data.reduce reducer, Promise.resolve()
       .then =>
         p = @parentObject()
@@ -612,12 +686,12 @@ class ChainVis extends Main
           .then => p.remove.apply p, c
     return promise
 
-  adjustCamera: (chainObject) =>
-    bbox = @getBBox chainObject
-    x = bbox.center().x
-    y = bbox.center().y
-    z = bbox.center().z + @getZoomDistanceFromBox bbox, 1.3
-    @panCameraToPosition3 new THREE.Vector3(x,y,z), 1000, true
+  # adjustCamera: (chainObject) =>
+  #   bbox = @getBBox chainObject
+  #   x = bbox.center().x
+  #   y = bbox.center().y
+  #   z = bbox.center().z + @getZoomDistanceFromBox bbox, 1.3
+  #   @panCameraToPosition3 new THREE.Vector3(x,y,z), 1000, true
 
   _endChain: (lastObject) =>
     console.info "Done with one chain."
@@ -773,7 +847,7 @@ class IntroVis extends Main
     z = bbox.center().z + @getZoomDistanceFromBox bbox, 1.2
     panned = @panCameraToPosition3 new THREE.Vector3(x,y,z), 1, true
 
-    return Promise.all([faded, panned]).then => @wait 5000
+    return Promise.all([faded, panned]).then => @wait 15000
       .then => @fadeAll(parent.children, 0, 1000)
 
 
