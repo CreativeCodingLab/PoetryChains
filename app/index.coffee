@@ -2,6 +2,7 @@ d3 = require "d3"
 Vis = require "./vis"
 
 vis = new Vis()
+vis.speedMultiplier
 
 do ->
   font_loaded = new Promise (resolve) ->
@@ -32,8 +33,8 @@ getJson = (apiCall, message) ->
     d3.json url, resolve
 
 modeGetter = () ->
-  order = [ "chain", "lines", "colocation" ]
-  index = 2
+  order = [ "intro", "chain", "lines", "colocation", "howe" ]
+  index = 0
   ->
     if ++index is order.length then index = 0
     return order[index]
@@ -87,9 +88,9 @@ colocationMode = ->
 introMode = ->
   console.info "Starting Intro Mode."
   vis.addIntro()
+    # .then => debugger
 
 howeMode = ->
   console.info "Starting Howe Mode."
   getJson "get-howe.json", "Requesting list of lines..."
-    .then vis.addHowe 
-
+    .then vis.addHowe

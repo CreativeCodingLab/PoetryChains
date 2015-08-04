@@ -6,18 +6,11 @@ createOrbitViewer = require('three-orbit-viewer')(THREE)
 assert = require "assert"
 
 module.exports = class Main
-  SCALE_TEXT = 0.005
 
-  SPEED_MULTIPLIER = 0.5
-
-  CAMERA_PAN_DURATION = 2000 * SPEED_MULTIPLIER
-  FADE_DURATION = 3000 * SPEED_MULTIPLIER
-  # CHAIN_FADE_DELAY = 5000 * SPEED_MULTIPLIER
+  scaleText: 0.005
+  speedMultiplier: 0.5
 
   CAMERA_Z = -9
-
-  scaleText: SCALE_TEXT
-  speedMultiplier: SPEED_MULTIPLIER
 
   parentObject: ->
       @scene.getObjectByName "parent"
@@ -81,7 +74,6 @@ module.exports = class Main
     howeVis = new HoweVis @scene, @camera, @font, @texture
     howeVis.start text
 
-
   setTexture: (@texture) ->
     maxAni = @renderer.getMaxAnisotropy()
 
@@ -138,6 +130,29 @@ module.exports = class Main
       this.children.map (d) -> d._letter
     lineObject
 
+  getSiblingsFromSubset: (parent, array) ->
+    return parent.children.filter (child) ->
+      return array.indexOf(child) < 0
+
+  getBBoxFromSubset: (parent, array) ->
+    subset = parent.children
+      .filter (child) ->
+        array.indexOf(child) > -1
+      .map (child) ->
+        child.clone()
+
+    clone = parent.clone()
+    clone.children = subset
+    box = getBBox clone
+
+    return box
+
+  getBBox = (object) ->
+    bbox = new THREE.BoundingBoxHelper( object )
+    do bbox.update
+    return bbox.box
+  getBBox: getBBox
+
   panCameraToPosition3: (target, duration, ignoreGlobal) =>
     z_offset = if ignoreGlobal? then 0 else CAMERA_Z
     new Promise (resolve) =>
@@ -154,44 +169,16 @@ module.exports = class Main
             @camera.position.z = z(t)
         .each "end", resolve
 
-  getSiblingsFromSubset: (parent, array) ->
-    return parent.children.filter (child) ->
-      return array.indexOf(child) < 0
-
-  # getSiblings2: (parent, array) ->
-  #   return parent.children.filter (child)
-
-  getBBoxFromSubset: (parent, array) ->
-    subset = parent.children
-      .filter (child) ->
-        array.indexOf(child) > -1
-      .map (child) ->
-        child.clone()
-
-    clone = parent.clone()
-    clone.children = subset
-
-    box = getBBox clone
-    #
-    # siblings = parent.children.filter (child) ->
-    #   return array.indexOf(child) < 0
-    # parent.remove.apply parent, siblings
-    # box = getBBox parent
-    # parent.add.apply parent, siblings
-    return box
-
-  getBBox = (object) ->
-    bbox = new THREE.BoundingBoxHelper( object, 0xff0000 )
-    do bbox.update
-    return bbox.box
-  getBBox: getBBox
-
   panCameraToObject: (object, duration) =>
     box = getBBox object
     @panCameraToBBox box, duration
 
   panCameraToBBox: (box, duration) =>
     @panCameraToPosition3 box.center(), duration
+
+  wait: (duration) =>
+    return new Promise (resolve) =>
+      setTimeout(resolve, duration)
 
   zoomCameraToPosition: (target, duration) =>
     new Promise (resolve) =>
@@ -690,7 +677,7 @@ class IntroVis extends Main
     console.info "New IntroVis."
 
   start: =>
-    @_addIntro()
+    return @_addIntro()
 
   fadeAll: (parent) =>
       promises = parent.children.map (child) =>
@@ -701,13 +688,10 @@ class IntroVis extends Main
     text_title = @getLineObject("Poetry Chains & Colocation Nets")
     text_author = @getLineObject("by Angus Forbes, with Paul Murray")
 
-
     lineObject2 = @getLineObject("A series of animated explorations")
     lineObject3 = @getLineObject("through the collected poems of Emily Dickinson")
 
     text_url = @getLineObject("http://evl.uic.edu/creativecoding")
-
-
 
     text_title.position.y = 30;
     text_author.position.y = text_title.position.y - text_title._layout.height - 50
@@ -742,15 +726,15 @@ class IntroVis extends Main
 
     parent.updateMatrixWorld(true)
 
-    @fadeAll(parent)
+    faded = @fadeAll(parent)
 
     bbox = @getBBox parent
     x = bbox.center().x - 0.2
     y = bbox.center().y
     z = bbox.center().z + @getZoomDistanceFromBox bbox, 1.2
-    @panCameraToPosition3 new THREE.Vector3(x,y,z), 1, true
+    panned = @panCameraToPosition3 new THREE.Vector3(x,y,z), 1, true
 
-
+    return Promise.all([faded, panned]).then => @wait 5000
 
 
 class HoweVis extends Main
