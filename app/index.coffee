@@ -1,7 +1,17 @@
 d3 = require "d3"
-Vis = require "./vis"
-
+Vis = require "./vis/Main"
 vis = new Vis()
+
+# Bar = require "./vis/Bar"
+# Foo = require "./vis/Foo"
+#
+# # _bar = new Bar()
+# _foo = new Foo()
+#
+# _foo.another()
+
+# Cha = require "./vis/ChainVis"
+# chain = new Cha()
 # vis.speedMultiplier = 0.01
 
 do ->
