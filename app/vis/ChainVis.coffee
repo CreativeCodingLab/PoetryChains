@@ -26,7 +26,7 @@ module.exports = class ChainVis extends Main
     siblings = lastObject.parent.children.filter (child) ->
       child isnt lastObject
     @fadeAll(siblings, 0, 1000)
-    @adjustCamera lastObject
+    @adjustCameraToFit lastObject
       .then ->
         lastObject.parent.remove.apply(lastObject.parent, siblings)
         return lastObject
@@ -41,7 +41,7 @@ module.exports = class ChainVis extends Main
         # @fadeToArray(0.2, 500) lastWordLetters
       .then =>
         lastObject.remove.apply(lastObject, siblings)
-        @adjustCamera lastObject
+        @adjustCameraToFit lastObject
         lastObject.name = "last_word"
         # console.log lastObject._letters()
         return lastObject
@@ -86,7 +86,7 @@ module.exports = class ChainVis extends Main
         return @fadeToArray(1, 1000) one_word_array
         # return @panCameraToBBox bbox, 1000
       .then =>
-        @adjustCamera chainObject
+        @adjustCameraToFit chainObject
         @fadeToArray(1, 1000) curr.children
             .then -> return curr
 

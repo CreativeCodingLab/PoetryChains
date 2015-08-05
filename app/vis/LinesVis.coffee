@@ -31,7 +31,7 @@ module.exports = class LinesVis extends Main
     # Fade in the root
     @lines_object.add root._text_object
     @fadeToArray(1, 1000) root._text_object.children
-    @panCameraToObject root._text_object
+    @adjustCameraToFitWidth root._text_object
       .then => return @traverse root
 
   traverse: (node) =>
@@ -53,24 +53,36 @@ module.exports = class LinesVis extends Main
         if next_child?
           return @chainedFadeInChildren(node, next_child)
       .then =>
-        if next_child?
-          @panCameraToObject next_child._text_object
-      .then =>
-        @wait 3e3
+        @viewFullLines node
       .then =>
         if next_child?
           return @traverse next_child
         else
           return Promise.resolve()
 
+  viewFullLines: (node) ->
+    # Clone the parent, and remove its children
+    parent = node._text_object.parent
+    parentClone = parent.clone()
+    parentClone.children = []
+    # Add parentClone as a sibling of the original
+    parent.parent.add parentClone
+    # Clone all sibling nodes
+    # And get nodes where all letters have non-zero opacity
+    clonedLines = parent.children.map (each) -> each.clone()
+      .filter (line) ->
+        return line.children.every (child) ->
+          return child.material.uniforms.opacity.value > 0
+    # Add them to parentClone
+    parentClone.add.apply parentClone, clonedLines
+    @adjustCameraToFitWidth parentClone
+    @wait 3e3
+
   chainedFadeIn: (array, duration) ->
     reduction = (promise, curr, index, array) =>
-      promise.then =>
-        par = curr._text_object.parent
-        subset = par.children.filter (d) -> d._all_here
-        obj = @getObjectFromSubset par, subset
-        # @adjustCameraWidth obj
+      return promise.then =>
         @fadeToArray(1, 1000) curr._text_object.children
+        @adjustCameraToFitWidth curr._text_object
     return array.reduce reduction, Promise.resolve()
 
   chainedFadeInChildren: (node, next_child) ->
@@ -122,6 +134,7 @@ module.exports = class LinesVis extends Main
     return parent
 
   # TODO: Make this much more general and add it to Main
+  # TODO: Use sIdx and eIdx
   alignToNode: (parent) ->
     (child) =>
       parent_x = parent._text_object.position.x

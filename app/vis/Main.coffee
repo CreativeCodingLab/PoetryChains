@@ -200,14 +200,14 @@ module.exports = class Main
   panCameraToBBox: (box, duration) =>
     @panCameraToPosition3 box.center(), duration
 
-  adjustCamera: (chainObject) =>
+  adjustCameraToFit: (chainObject, scale, duration) =>
     bbox = @getBBox chainObject
     x = bbox.center().x
     y = bbox.center().y
-    z = bbox.center().z + @getZoomDistanceFromBox bbox, 1.3
-    @panCameraToPosition3 new THREE.Vector3(x,y,z), 1000, true
+    z = bbox.center().z + @getZoomDistanceFromBox bbox, scale or 1.3
+    @panCameraToPosition3 new THREE.Vector3(x,y,z), duration or 1000, true
 
-  adjustCameraWidth: (chainObject) =>
+  adjustCameraToFitWidth: (chainObject) =>
     bbox = @getBBox chainObject
     x = bbox.center().x
     y = bbox.center().y
@@ -239,7 +239,6 @@ module.exports = class Main
           del = i * 10 * @speedMultiplier
           return del
         .tween "fadeOpacity", ->
-          # if target? then debugger
           obj = target || this
           from = obj.material.uniforms.opacity.value
           i = d3.interpolate from, to
