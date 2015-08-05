@@ -24,7 +24,11 @@ _runScript = (scriptPath) ->
       reject(error) if (error)
       stdout = replaceEmDash stdout
       # console.log stdout
-      json = JSON.parse(stdout)
+      try
+        json = JSON.parse(stdout)
+      catch e
+        console.error e
+
       resolve json
     )
 
