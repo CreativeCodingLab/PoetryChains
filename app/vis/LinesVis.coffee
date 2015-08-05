@@ -12,22 +12,20 @@ module.exports = class LinesVis extends Main
     @lines_object = lines_object
 
   start: (data) ->
+    data = sanitizeData data
     # Convert lines data to tree structure
     root = linesToTree data
-
     # Add empty Object3Ds
     root = @addObjects root
-
     # Position objects
     root = @positionObjects root
-
     @animateLines root
       .then =>
         @fadeAll @lines_object.children, 0, 2000
       .then =>
         @lines_object.remove.apply(@lines_object, @lines_object.children)
 
-  ########################
+  ######################################################################
   # ANIMATE LINES
   animateLines: (root) =>
     # Fade in the root
@@ -35,14 +33,6 @@ module.exports = class LinesVis extends Main
     @fadeToArray(1, 1000) root._text_object.children
     @panCameraToObject root._text_object
       .then => return @traverse root
-
-  fadeOutOthers: (object) ->
-    others = object.parent.children.filter (child) ->
-      child isnt object
-    promises = others.map (each) =>
-      @fadeToArray(0, 1000) each.children
-        .then => object.parent.remove each
-    return Promise.all promises
 
   traverse: (node) =>
     console.assert node.word isnt "", "node.word is '#{node.word}'", node
@@ -57,28 +47,13 @@ module.exports = class LinesVis extends Main
       .then =>
         return @fadeOutOthers node._text_object
       .then =>
-        # Fade in children
         if next_child?
-          promises = node.children.map (child) =>
-            @lines_object.add child._text_object
-            # Get the array of letters for the target word only
-            children = @getLetterObjectsForWord child._text_object, node.word
-            @fadeToArray(1, 1000) children
-          return Promise.all promises
-      .then =>
-        # Chained fade-in of child lines
-        if next_child?
-          pos = node._positions_array
-          curr = pos.indexOf(node)
-          next = pos.indexOf(next_child)
-          if curr < next
-            fade_array = pos.slice(curr + 1, next + 1)
-          else
-            fade_array = pos.slice(next, curr).reverse()
-          @chainedFadeIn fade_array, 1000
+          return @fadeInChildWords node
       .then =>
         if next_child?
-          # fadeToArray(1, 1000) next_child._text_object.children
+          return @chainedFadeInChildren(node, next_child)
+      .then =>
+        if next_child?
           @panCameraToObject next_child._text_object
       .then =>
         @wait 3e3
@@ -88,6 +63,43 @@ module.exports = class LinesVis extends Main
         else
           return Promise.resolve()
 
+  chainedFadeIn: (array, duration) ->
+    reduction = (promise, curr, index, array) =>
+      promise.then =>
+        par = curr._text_object.parent
+        subset = par.children.filter (d) -> d._all_here
+        obj = @getObjectFromSubset par, subset
+        # @adjustCameraWidth obj
+        @fadeToArray(1, 1000) curr._text_object.children
+    return array.reduce reduction, Promise.resolve()
+
+  chainedFadeInChildren: (node, next_child) ->
+    pos = node._positions_array
+    curr = pos.indexOf(node)
+    next = pos.indexOf(next_child)
+    if curr < next
+      fade_array = pos.slice(curr + 1, next + 1)
+    else
+      fade_array = pos.slice(next, curr).reverse()
+    return @chainedFadeIn fade_array, 1000
+
+  fadeInChildWords: (node) ->
+    # Fade in children, target word only
+    promises = node.children.map (child) =>
+      @lines_object.add child._text_object
+      # Get the array of letters for the target word only
+      children = @getLetterObjectsForWord child._text_object, node.word
+      return @fadeToArray(1, 1000) children
+    return Promise.all promises
+
+  fadeOutOthers: (object) ->
+    others = object.parent.children.filter (child) ->
+      child isnt object
+    promises = others.map (each) =>
+      @fadeToArray(0, 1000) each.children
+        .then => object.parent.remove each
+    return Promise.all promises
+
   positionObjects: (parent) =>
     do traverse = (parent) =>
       return if ! parent.children?
@@ -95,7 +107,7 @@ module.exports = class LinesVis extends Main
       positions_array = d3.shuffle parent.children.concat parent
       parent_index = positions_array.indexOf parent
       parent_y = parent._text_object.position.y
-
+      # Set the array determining positons for this node and its children
       parent._positions_array = positions_array
 
       positions_array.forEach (node, index) =>
@@ -108,18 +120,6 @@ module.exports = class LinesVis extends Main
       parent.children.forEach traverse
 
     return parent
-    
-  chainedFadeIn: (array, duration) ->
-    reduction = (promise, curr, index, array) =>
-      promise.then =>
-        curr._text_object._all_here = true
-        par = curr._text_object.parent
-        subset = par.children.filter (d) -> d._all_here
-        obj = @getObjectFromSubset par, subset
-        # @adjustCameraWidth obj
-        @fadeToArray(1, 1000) curr._text_object.children
-
-    promise = array.reduce reduction, Promise.resolve()
 
   # TODO: Make this much more general and add it to Main
   alignToNode: (parent) ->
@@ -154,4 +154,16 @@ module.exports = class LinesVis extends Main
       current.children[prev_index] = prev
       prev._parent = current
       current
-    lines.reduceRight reducer
+    return lines.reduceRight reducer
+
+  sanitizeData = (data) ->
+    return data.map (each) ->
+      if each.sIdx is each.eIdx
+        if each.line[each.sIdx] isnt ""
+          each.word = each.line[each.sIdx]
+          each.eIdx = each.sIdx + 1
+        else
+          console.error each, each.line[each.sIdx+1]
+      console.assert each.sIdx isnt each.eIdx, each
+      console.assert each.word isnt "", each
+      return each
