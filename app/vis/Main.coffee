@@ -74,29 +74,6 @@ module.exports = class Main
       @[visClass] = new Class @scene, @camera, @font, @texture
     @[visClass].start data
 
-  addNetwork: (network) =>
-    if ! @colocationVis?
-      @colocationVis = new ColocationVis @scene, @camera, @font, @texture
-    @colocationVis.start network
-
-  addLines: (data, visClass) =>
-    if ! @linesVis?
-      # LinesVis = require "./LinesVis"
-      visClass = "ChainVis"
-      Class = require "./LinesVis"
-      @linesVis = new Class @scene, @camera, @font, @texture
-    @linesVis.start data
-    # linesVis = new LinesVis @scene, @camera, @font, @texture
-    # linesVis.start lines
-
-  addIntro: =>
-    introVis = new IntroVis @scene, @camera, @font, @texture
-    introVis.start()
-
-  addHowe: (text) =>
-    howeVis = new HoweVis @scene, @camera, @font, @texture
-    howeVis.start text
-
   setTexture: (@texture) ->
     maxAni = @renderer.getMaxAnisotropy()
 

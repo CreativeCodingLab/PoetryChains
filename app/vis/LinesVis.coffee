@@ -6,13 +6,20 @@ module.exports = class LinesVis extends Main
   constructor: (@scene, @camera, @font, @texture) ->
     console.info "New LinesVis."
 
+    lines_object = new THREE.Object3D()
+    lines_object.scale.multiplyScalar(@scaleText)
+    lines_object.updateMatrixWorld(true)
+    @scene.add lines_object
+
+    @lines_object = lines_object
+
   start: (data) ->
     root = @_addLines data
     @animateLines root
       .then =>
         @fadeAll @lines_object.children, 0, 2000
-          .then =>
-              @lines_object.remove.apply(@lines_object, @lines_object.children)
+      .then =>
+        @lines_object.remove.apply(@lines_object, @lines_object.children)
 
   ########################
   # ANIMATE LINES
@@ -22,9 +29,7 @@ module.exports = class LinesVis extends Main
     # Fade in the root
     @lines_object.add root._text_object
     @fadeToArray(1, 1000) root._text_object.children
-      # .then => root._text_object._all_here = true
     @panCameraToObject root._text_object
-    # @adjustCameraWidth root._text_object
         .then => return @traverse root
 
   traverse: (node) =>
@@ -80,16 +85,10 @@ module.exports = class LinesVis extends Main
           return Promise.resolve()
 
   _addLines: (lines) =>
-    lines_object = new THREE.Object3D()
-    lines_object.scale.multiplyScalar(@scaleText)
-    lines_object.updateMatrixWorld(true)
-    @scene.add lines_object
-
-    @lines_object = lines_object
 
     root = linesToTree lines
 
-    @addObjects(lines_object)(root)
+    @addObjects(@lines_object)(root)
 
     traverse = (parent) =>
       return if ! parent.children?
