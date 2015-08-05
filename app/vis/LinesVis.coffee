@@ -79,7 +79,8 @@ module.exports = class LinesVis extends Main
     reduction = (promise, curr, index, array) =>
       return promise.then =>
         @fadeToArray(1, 1000) curr._text_object.children
-        @adjustCameraToFitWidth curr._text_object
+        #@adjustCameraToFitWidth curr._text_object
+        @viewFullLines curr
     return array.reduce reduction, Promise.resolve()
 
   chainedFadeInChildren: (node, next_child) ->

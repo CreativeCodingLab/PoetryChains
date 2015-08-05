@@ -6,7 +6,7 @@ Shader = require "./shaders/sdf"
 
 module.exports = class Main
   scaleText: 0.005
-  speedMultiplier: 0.1
+  speedMultiplier: 0.9
   #speedMultiplier: 0.09
 
   CAMERA_Z = -9

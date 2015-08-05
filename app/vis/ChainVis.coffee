@@ -15,7 +15,7 @@ module.exports = class ChainVis extends Main
             .then @_endChain
     promise = data.reduce reducer, Promise.resolve()
       .then =>
-        p = @parentObject()
+        p = @getParentObject()
         c = p.children
         return @fadeAll p.children, 0, 2000
           .then => p.remove.apply p, c
@@ -58,6 +58,9 @@ module.exports = class ChainVis extends Main
       last_word = lastObject._letters().join("")
       @alignObjectsByWord lastObject, lineObjects[0], last_word
       lineObjects.forEach (obj) -> obj.position.copy lineObjects[0].position
+      #@adjustCameraToFitWidth lastObject, 4
+      @fadeToArray(0, 1000) lastObject.children
+        .then => lastObject.parent.remove lastObject
 
     # if lastObject?
       # lineObjects[0] = @addToExistingObject lastObject, lineObjects[0]
@@ -69,7 +72,7 @@ module.exports = class ChainVis extends Main
         return lineObject
       .map positionLines
 
-    chainObject = @parentObject()
+    chainObject = @getParentObject()
 
     ########################
     # ANIMATE POETRY CHAIN
