@@ -29,14 +29,20 @@ module.exports = class LinesVis extends Main
 
   ########################
   # ANIMATE LINES
-  #
   animateLines: (root) =>
-
     # Fade in the root
     @lines_object.add root._text_object
     @fadeToArray(1, 1000) root._text_object.children
     @panCameraToObject root._text_object
-        .then => return @traverse root
+      .then => return @traverse root
+
+  fadeOutOthers: (object) ->
+    others = object.parent.children.filter (child) ->
+      child isnt object
+    promises = others.map (each) =>
+      @fadeToArray(0, 1000) each.children
+        .then => object.parent.remove each
+    return Promise.all promises
 
   traverse: (node) =>
     console.assert node.word isnt "", "node.word is '#{node.word}'", node
@@ -48,16 +54,7 @@ module.exports = class LinesVis extends Main
     # Start promise chain
     return Promise.resolve()
       .then =>
-        # Fade out siblings
-        if node._parent?
-          siblings = node._parent.children
-            .filter (child) -> child isnt node
-          parent = node._parent
-          promises = siblings.concat(parent).map (child) =>
-            @fadeToArray(0, 1000) child._text_object.children
-              .then => @lines_object.remove child._text_object
-          return Promise.all promises
-        return true
+        return @fadeOutOthers node._text_object
       .then =>
         # Fade in children
         if next_child?

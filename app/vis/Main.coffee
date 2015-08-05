@@ -114,9 +114,10 @@ module.exports = class Main
     glyph_positions = line_layout.glyphs.map (g) -> g.position
 
     letterObjects = line.split("").map (letter, index) =>
-      # assert glyph_positions[index], "#{line} -- #{letter}"
+
       if ! glyph_positions[index]
         console.error "no glyph for #{letter}"
+
       letter_mesh = @getMeshFromString letter
 
       if glyph_positions[index]
@@ -127,7 +128,7 @@ module.exports = class Main
       letter_mesh._letter = letter
       letter_mesh
 
-    # TODO: Pack up words...
+    # TODO: Pack up words?
 
     lineObject = new THREE.Object3D()
     lineObject.add.apply lineObject, letterObjects
@@ -290,17 +291,14 @@ module.exports = class Main
     width = Math.abs(box.min.x - box.max.x)
     height = Math.abs(box.min.y - box.max.y)
 
-    if width > height
-      # Calculate horizontal field of view
-      # See: github.com/mrdoob/three.js/issues/1239
-      v_fov = _radianScale @camera.fov
-      h_fov = Math.atan( Math.tan(v_fov/2) * @camera.aspect )
+    # Calculate horizontal field of view
+    # See: github.com/mrdoob/three.js/issues/1239
+    v_fov = _radianScale @camera.fov
+    h_fov = Math.atan( Math.tan(v_fov/2) * @camera.aspect )
 
+    if width > height
       return -(width / 2) / Math.tan(h_fov) * distance_scale
     else
-      v_fov = _radianScale @camera.fov
-      h_fov = Math.atan( Math.tan(v_fov/2) * @camera.aspect )
-
       return -(height / 2) / Math.tan(h_fov) * distance_scale
 
   getWordIndex = (line, word) ->
