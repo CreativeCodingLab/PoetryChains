@@ -5,7 +5,7 @@ module.exports = class ColocationVis extends Main
     console.info "New ColocationVis."
 
   rotation: 0
-  maxAmount: 0
+  maxSizeScale: 2
 
   start: (network) =>
     radius = 600
@@ -16,7 +16,7 @@ module.exports = class ColocationVis extends Main
 
     @amountScale = d3.scale.linear()
       .domain([1, maxAmount])
-      .range([1, 4])
+      .range([1, @maxSizeScale])
 
     root = makeTree network
     root = @setNetworkPositions root, radius
@@ -35,7 +35,7 @@ module.exports = class ColocationVis extends Main
     @fadeToArray(1, 1000) root._text_object.children
 
     traverse = (node, index, array) =>
-      delay = 2000
+      delay = 1000
 
       next_child = node.children.filter((_) -> _.children?)[0]
 
@@ -56,6 +56,9 @@ module.exports = class ColocationVis extends Main
       node._text_object.parent.add child._text_object
       scale = @amountScale child.amt || 1
       child._text_object.scale.multiplyScalar scale
+      child._final_position = child._text_object.position.clone()
+      child._start_position = node._text_object.position.clone()
+      # child._text_object.position.copy child._start_position
     @adjustCameraToFit node._text_object.parent, 1.7
     promises = node.children.map (child) =>
       # Stagger fade-in of children
