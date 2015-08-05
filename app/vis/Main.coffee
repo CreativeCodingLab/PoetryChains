@@ -222,6 +222,20 @@ module.exports = class Main
     z = bbox.center().z + dist
     @panCameraToPosition3 new THREE.Vector3(x,y,z), duration or 1000, true
 
+  adjustCameraToFitBoxWidth: (bbox, scale, duration) =>
+    dist = @getZoomDistanceFromBoxWidth(bbox, scale or 1.3)
+    x = bbox.center().x
+    y = bbox.center().y
+    z = bbox.center().z + dist
+    @panCameraToPosition3 new THREE.Vector3(x,y,z), duration or 1000, true
+
+  adjustCameraToFitBox: (bbox, scale, duration) =>
+    dist = @getZoomDistanceFromBox(bbox, scale or 1.3)
+    x = bbox.center().x
+    y = bbox.center().y
+    z = bbox.center().z + dist
+    @panCameraToPosition3 new THREE.Vector3(x,y,z), duration or 1000, true
+
   wait: (duration) =>
     return new Promise (resolve) =>
       func = () -> resolve()

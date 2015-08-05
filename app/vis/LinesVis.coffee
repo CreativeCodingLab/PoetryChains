@@ -51,6 +51,7 @@ module.exports = class LinesVis extends Main
           return @chainedFadeInChildren(node, next_child)
       .then =>
         @viewFullLines node
+        @wait 3e3
       .then =>
         if next_child?
           return @traverse next_child
@@ -72,14 +73,15 @@ module.exports = class LinesVis extends Main
           return child.material.uniforms.opacity.value > 0
     # Add them to parentClone
     parentClone.add.apply parentClone, clonedLines
-    @adjustCameraToFitWidth parentClone
-    @wait 3e3
+    bbox = @getBBox parentClone
+    parentClone.parent.remove parentClone
+    @adjustCameraToFitBox bbox, 1.3
 
   chainedFadeIn: (array, duration) ->
     reduction = (promise, curr, index, array) =>
       return promise.then =>
         @fadeToArray(1, 1000) curr._text_object.children
-        #@adjustCameraToFitWidth curr._text_object
+        # @adjustCameraToFitWidth curr._text_object
         @viewFullLines curr
     return array.reduce reduction, Promise.resolve()
 
