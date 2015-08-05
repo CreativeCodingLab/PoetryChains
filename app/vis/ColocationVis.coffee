@@ -39,27 +39,60 @@ module.exports = class ColocationVis extends Main
 
       next_child = node.children.filter((_) -> _.children?)[0]
 
-      return @adjustCameraToFitWidth node._text_object, 4
-        .then => @wait 3e3
+      if node.children?
+        @addChildren node
+
+      return @adjustCameraToFitWidth node._text_object.parent, 1.7
+        .then => @wait 1e3
         .then =>
           if next_child?
-            @fadeInChildren node, delay
-              .then => @wait 3e3
-              .then => @fadeOutSiblingsAndGrandparent(next_child)
+            @moveChildren node, delay
+              .then => @wait 2e3
+              .then =>
+                @fadeOutSiblingsAndGrandparent(next_child)
+                # traverse next_child
               .then => traverse next_child
 
     return traverse(root)
 
-  fadeInChildren: (node, delay) ->
+  addChildren: (node) ->
     node.children.map (child) =>
       child._text_object or= @getTextObject child
       node._text_object.parent.add child._text_object
       scale = @amountScale child.amt || 1
       child._text_object.scale.multiplyScalar scale
-      child._final_position = child._text_object.position.clone()
+
+  moveChildren: (node, delay) ->
+    node.children.map (child) =>
+      child._end_position = child._text_object.position.clone()
       child._start_position = node._text_object.position.clone()
-      # child._text_object.position.copy child._start_position
-    @adjustCameraToFit node._text_object.parent, 1.7
+      child._start_size = new THREE.Vector3(0.01, 0.01, 0.01)
+      child._end_size = child._text_object.scale.clone()
+      child._text_object.position.copy child._start_position
+      child._text_object.scale.copy child._start_size
+
+    self = this
+
+    return new Promise (resolve) ->
+      d3.selectAll(node.children).transition()
+        .duration 2000
+        .delay -> Math.random() * delay
+        .tween "moveChild", ->
+          start = this._start_position
+          end = this._end_position
+          position = d3.interpolate start, end
+
+          startSize = this._start_size
+          endSize = this._end_size
+          scale = d3.interpolate startSize, endSize
+          return (t) ->
+            this._text_object.position.copy position(t)
+            this._text_object.scale.copy scale(t)
+        .each ->
+          self.fadeToArray(1, 3000) this._text_object.children
+          d3.transition().each "end", resolve
+
+  fadeInChildren: (node, delay) ->
     promises = node.children.map (child) =>
       # Stagger fade-in of children
       @wait Math.random() * delay

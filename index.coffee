@@ -14,6 +14,7 @@ app.use require("cors")()
 
 app.get "/log/:message", (request, response) ->
   console.log "#{new Date()}: #{request.params.message}"
+  response.end()
 
 app.use (request, response, next) ->
   console.log "#{new Date()}: Got request.";
