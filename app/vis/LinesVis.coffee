@@ -5,16 +5,22 @@ module.exports = class LinesVis extends Main
 
   constructor: (@scene, @camera, @font, @texture) ->
     console.info "New LinesVis."
-
     lines_object = new THREE.Object3D()
     lines_object.scale.multiplyScalar(@scaleText)
     lines_object.updateMatrixWorld(true)
     @scene.add lines_object
-
     @lines_object = lines_object
 
   start: (data) ->
-    root = @_addLines data
+    # Convert lines data to tree structure
+    root = linesToTree data
+
+    # Add empty Object3Ds
+    root = @addObjects root
+
+    # Position objects
+    root = @positionObjects root
+
     @animateLines root
       .then =>
         @fadeAll @lines_object.children, 0, 2000
@@ -25,7 +31,7 @@ module.exports = class LinesVis extends Main
   # ANIMATE LINES
   #
   animateLines: (root) =>
-    # console.info "Animating lines."
+
     # Fade in the root
     @lines_object.add root._text_object
     @fadeToArray(1, 1000) root._text_object.children
@@ -84,13 +90,8 @@ module.exports = class LinesVis extends Main
         else
           return Promise.resolve()
 
-  _addLines: (lines) =>
-
-    root = linesToTree lines
-
-    @addObjects(@lines_object)(root)
-
-    traverse = (parent) =>
+  positionObjects: (parent) =>
+    do traverse = (parent) =>
       return if ! parent.children?
 
       positions_array = d3.shuffle parent.children.concat parent
@@ -108,18 +109,26 @@ module.exports = class LinesVis extends Main
       parent.children.forEach @alignToNode(parent)
       parent.children.forEach traverse
 
-    traverse root
-    return root
+    return parent
 
-  addObjects: (lines_object) =>
-    (root) =>
-      traverse = (node) =>
-        node._text_object = @getLineObject(node.line)
-        # lines_object.add node._text_object
+  # TODO: Make this much more general and add it to Main
+  alignToNode: (parent) ->
+    (child) =>
+      parent_x = parent._text_object.position.x
+      word = word or parent.word
+      offset = [ parent, child ]
+          .map (_) =>
+            idx = @getWordIndex _.line, word
+            console.assert idx isnt -1, "#{_.line}, #{word}"
+            _._text_object.children[idx].position.x
+          .reduce (a, b) -> a - b
+      child._text_object.position.x = parent_x + offset
 
-        node.children.forEach traverse if node.children
-
-      traverse(root)
+  addObjects: (node) ->
+    do traverse = (node) =>
+      node._text_object = @getLineObject node.line
+      node.children.forEach traverse if node.children
+    return node
 
   linesToTree = (lines) ->
     lines = lines.map (line) ->
@@ -128,7 +137,6 @@ module.exports = class LinesVis extends Main
       sIdx: line.sIdx
       eIdx: line.eIdx
       children: line.lines
-
     reducer = (prev, current, index, array) ->
       prev_index = current.children
           .map (_) -> _.line
@@ -136,5 +144,4 @@ module.exports = class LinesVis extends Main
       current.children[prev_index] = prev
       prev._parent = current
       current
-
     lines.reduceRight reducer

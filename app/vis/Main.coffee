@@ -141,10 +141,6 @@ module.exports = class Main
     return parent.children.filter (child) ->
       return array.indexOf(child) < 0
 
-  # getBBoxFromArray: (array) ->
-  #   cloned = array.map (each) -> each.clone()
-  #   temp = {}
-
   getObjectFromSubset: (parent, array) ->
     subset = parent.children
       .filter (child) ->
@@ -334,33 +330,7 @@ module.exports = class Main
         idx = getWordIndex each._letters().join(""), word
         return each.children[idx].position.x
       .reduce (a, b) -> a - b
-    # console.log "offset: #{offset}"
     other.position.x += offset
-
-  checkIt = (idx, a, b) ->
-    #if idx < 0
-    console.log("HEY : " +  a + " : " + b)
-
-
-  alignToNode = (parent) ->
-    (child) ->
-      parent_x = parent._text_object.position.x
-      word = parent.word
-      offset = [ parent, child ]
-          .map (_) ->
-            idx = getWordIndex _.line, word
-            assert idx isnt -1, "#{_.line}, #{word}"
-
-            #checkIt(idx, _.line, word)
-
-            #else
-            #_._text_object.children[0].position.x
-            _._text_object.children[idx].position.x
-          .reduce (a, b) -> a - b
-      child._text_object.position.x = parent_x + offset
-      #child._text_object.position.x = 0
-
-  alignToNode: alignToNode
 
   getLetterObjectsForWord: (text_object, word, accessor) ->
     line = if accessor? then accessor text_object else text_object._line
