@@ -258,18 +258,6 @@ module.exports = class Main
           return @fadeToArray(to, duration) child.children
       return Promise.all promises
 
-  chainedFadeIn: (array, duration) ->
-    reduction = (promise, curr, index, array) =>
-      promise.then =>
-        curr._text_object._all_here = true
-        par = curr._text_object.parent
-        subset = par.children.filter (d) -> d._all_here
-        obj = @getObjectFromSubset par, subset
-        # @adjustCameraWidth obj
-        @fadeToArray(1, 1000) curr._text_object.children
-
-    promise = array.reduce reduction, Promise.resolve()
-
   _radianScale = d3.scale.linear()
       .domain([0, 360])
       .range([0, Math.PI * 2])

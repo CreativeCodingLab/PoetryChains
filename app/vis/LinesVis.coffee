@@ -49,6 +49,7 @@ module.exports = class LinesVis extends Main
     return if ! node.children?
     return if node.word is ""
 
+    # Does this node have a child with more children?
     next_child = node.children.filter((_) -> _.children?)[0]
 
     # Start promise chain
@@ -107,6 +108,18 @@ module.exports = class LinesVis extends Main
       parent.children.forEach traverse
 
     return parent
+    
+  chainedFadeIn: (array, duration) ->
+    reduction = (promise, curr, index, array) =>
+      promise.then =>
+        curr._text_object._all_here = true
+        par = curr._text_object.parent
+        subset = par.children.filter (d) -> d._all_here
+        obj = @getObjectFromSubset par, subset
+        # @adjustCameraWidth obj
+        @fadeToArray(1, 1000) curr._text_object.children
+
+    promise = array.reduce reduction, Promise.resolve()
 
   # TODO: Make this much more general and add it to Main
   alignToNode: (parent) ->
