@@ -2,7 +2,7 @@ Main = require "./Main"
 
 module.exports = class ColocationVis extends Main
   constructor: (@scene, @camera, @font, @texture) ->
-    console.info "New ColocationVis."
+    @log "New ColocationVis."
 
   rotation: 0
   maxSizeScale: 2

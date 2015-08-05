@@ -4,7 +4,7 @@ module.exports = class LinesVis extends Main
   lineSpacing: 40
 
   constructor: (@scene, @camera, @font, @texture) ->
-    console.info "New LinesVis."
+    @log "New LinesVis."
 
     @lines_object = @getParentObject()
 

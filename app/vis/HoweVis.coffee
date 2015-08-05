@@ -2,7 +2,7 @@ Main = require "./Main"
 
 module.exports = class HoweVis extends Main
   constructor: (@scene, @camera, @font, @texture) ->
-    console.info "New HoweVis."
+    @log "New HoweVis."
 
   start: (data) =>
     return @_addHowe data

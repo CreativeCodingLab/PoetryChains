@@ -2,7 +2,7 @@ Main = require "./Main"
 
 module.exports = class IntroVis extends Main
   constructor: (@scene, @camera, @font, @texture) ->
-    console.info "New IntroVis."
+    @log "New IntroVis."
 
   start: =>
     return @_addIntro()

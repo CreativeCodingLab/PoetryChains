@@ -11,6 +11,10 @@ module.exports = class Main
 
   CAMERA_Z = -9
 
+  log: (message) ->
+    console.info message
+    d3.xhr("/log/#{message}").get()
+
   getParentObject: ->
     obj = @scene.getObjectByName "parent"
     return obj if obj?
@@ -22,7 +26,7 @@ module.exports = class Main
     return @scene.getObjectByName "parent"
 
   constructor: ->
-    console.log "Starting Vis"
+    @log "Starting Main Vis"
 
     @renderer = new THREE.WebGLRenderer()
     @renderer.setPixelRatio( window.devicePixelRatio )

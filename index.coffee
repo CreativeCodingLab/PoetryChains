@@ -12,6 +12,13 @@ app = express()
 
 app.use require("cors")()
 
+app.get "/log/:message", (request, response) ->
+  console.log "#{new Date()}: #{request.params.message}"
+
+app.use (request, response, next) ->
+  console.log "#{new Date()}: Got request.";
+  next()
+
 app.get("/api/get-chain.json", (request, response) ->
   word = request.query.word
   poetryFunctions().poetryChain(word).then (data) ->

@@ -3,7 +3,7 @@ assert = require "assert"
 
 module.exports = class ChainVis extends Main
   constructor: (@scene, @camera, @font, @texture) ->
-    console.info "New ChainVis."
+    @log "New ChainVis."
 
   start: (data) =>
     reducer = (prev, curr) =>
