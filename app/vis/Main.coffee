@@ -11,8 +11,15 @@ module.exports = class Main
 
   CAMERA_Z = -9
 
-  parentObject: ->
-      @scene.getObjectByName "parent"
+  getParentObject: ->
+    obj = @scene.getObjectByName "parent"
+    return obj if obj?
+
+    parentObject = new THREE.Object3D()
+    parentObject.scale.multiplyScalar(@scaleText)
+    parentObject.name = "parent"
+    @scene.add parentObject
+    return @scene.getObjectByName "parent"
 
   constructor: ->
     console.log "Starting Vis"
@@ -207,12 +214,13 @@ module.exports = class Main
     z = bbox.center().z + @getZoomDistanceFromBox bbox, scale or 1.3
     @panCameraToPosition3 new THREE.Vector3(x,y,z), duration or 1000, true
 
-  adjustCameraToFitWidth: (chainObject) =>
+  adjustCameraToFitWidth: (chainObject, scale, duration) =>
     bbox = @getBBox chainObject
+    dist = @getZoomDistanceFromBoxWidth(bbox, scale or 1.3)
     x = bbox.center().x
     y = bbox.center().y
-    z = bbox.center().z + @getZoomDistanceFromBoxWidth bbox, 1.3
-    @panCameraToPosition3 new THREE.Vector3(x,y,z), 1000, true
+    z = bbox.center().z + dist
+    @panCameraToPosition3 new THREE.Vector3(x,y,z), duration or 1000, true
 
   wait: (duration) =>
     return new Promise (resolve) =>

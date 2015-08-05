@@ -5,11 +5,8 @@ module.exports = class LinesVis extends Main
 
   constructor: (@scene, @camera, @font, @texture) ->
     console.info "New LinesVis."
-    lines_object = new THREE.Object3D()
-    lines_object.scale.multiplyScalar(@scaleText)
-    lines_object.updateMatrixWorld(true)
-    @scene.add lines_object
-    @lines_object = lines_object
+
+    @lines_object = @getParentObject()
 
   start: (data) ->
     data = sanitizeData data
