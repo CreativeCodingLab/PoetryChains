@@ -9,7 +9,7 @@
     "promise": "^7.0.3"
   },
   "scripts": {
-    "start": "forever start -o ./stdout.log --uid \"poetry-vis\" --fifo --append -c \"nodemon --exitcrash\" index.coffee",
+    "start": "forever start -o ./stdout.log --uid \"poetry-vis\" --killSignal=SIGTERM --fifo --append -c \"nodemon --exitcrash\" index.coffee",
     "stop": "forever stop \"poetry-vis\""
   }
 }
