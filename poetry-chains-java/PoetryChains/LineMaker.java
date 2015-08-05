@@ -9,7 +9,7 @@ public class LineMaker {
 
   static boolean OUTPUT_JSON = true;
   static int MAX_LINES = 20; //max collocated lines per iteration
-  static int NUM_LINES = 6; //num iterations
+  static int NUM_ITERATIONS = 6; //num iterations
 
   public Word lastSelected = null;
 
@@ -22,11 +22,16 @@ public class LineMaker {
     Parser.loadInPoems(new File("EmilyDickinsonPoems.txt"), NUM_LINES);
     Parser.rankWords();
 
+    
     if (args.length == 0) {
       makeLines(null);
     } else {
       System.err.println("Seeding PoetryChain:Lines with " + args[0]);
-      Word sw = Parser.words.get(args[0]);
+
+      //String inputWithoutPunc = args[0].replaceAll("\\p{Punct}+", "");
+      String inputWithoutPunc = args[0];
+
+      Word sw = Parser.words.get(inputWithoutPunc);
 
       if (sw != null) {
         Line seedLine = LineMaker.randomElements(sw.lines, 1).get(0);
@@ -35,7 +40,9 @@ public class LineMaker {
         makeLines(null);
       }
     }
+    
 
+     
 
   }
 
@@ -120,7 +127,7 @@ System.out.println("w = " + w);
     }
 
 
-    for (int i = 0; i < NUM_LINES; i++) {
+    for (int i = 0; i < NUM_ITERATIONS; i++) {
       //1. grab a line at random
       if (i == 0 && seedLine != null) {
         line = seedLine;
@@ -129,15 +136,15 @@ System.out.println("w = " + w);
       }
       if (OUTPUT_JSON) {
 
-        // System.out.print("\t{\n\t\t\"line\":\"" + line.text.replaceAll("\"", "\\\\\"") + "\",\n");
+         System.out.print("\t{\n\t\t\"line\":\"" + line.text.replaceAll("\"", "\\\\\"") + "\",\n");
         //System.out.print("\t{\n\t\t\"line\":\"" + removePuncationAndCapitals(line) + "\",\n");
 
         //System.out.print("\t{\n\t\t\"line\":\"" + line.text + "\",\n");
-        System.out.print("\t{\n\t\t\"line\":\"" + removePuncationAndCapitals(line) + "\",\n");
+        //System.out.print("\t{\n\t\t\"line\":\"" + removePuncationAndCapitals(line) + "\",\n");
 
       } else {
-        //System.out.println("line = " + line.text);
-        System.out.println("line = " + removePuncationAndCapitals(line));
+        System.out.println("line = " + line.text);
+        //System.out.println("line = " + removePuncationAndCapitals(line));
 
       }
 
@@ -158,8 +165,8 @@ System.out.println("w = " + w);
             int sIdx = line.calcStartIndexOfWordInLine(word);
             int eIdx = line.calcEndIndexOfWordInLine(word);
 
-    System.out.print("\t\t\"sIdx\":\"" + sIdx + "\",\n");
-    System.out.print("\t\t\"eIdx\":\"" + eIdx + "\",\n");
+            System.out.print("\t\t\"sIdx\":\"" + sIdx + "\",\n");
+            System.out.print("\t\t\"eIdx\":\"" + eIdx + "\",\n");
 
 
 
@@ -188,12 +195,12 @@ System.out.println("w = " + w);
 
         if (OUTPUT_JSON) {
 
-        //   System.out.print("\t\t\t{\"line\":\"" + l.text.replaceAll("\"", "\\\\\"") + "\",\"sIdx\":"+sIdx+",\"eIdx\":"+eIdx+"}");
+          System.out.print("\t\t\t{\"line\":\"" + l.text.replaceAll("\"", "\\\\\"") + "\",\"sIdx\":"+sIdx+",\"eIdx\":"+eIdx+"}");
           //System.out.print("\t\t\t\"" + removePuncationAndCapitals(l) + "\"");
 
 
           //System.out.print("\t\t\t{\"line\":\"" + l.text + "\",\"sIdx\":"+sIdx+",\"eIdx\":"+eIdx+"}");
-          System.out.print("\t\t\t{\"line\":\"" + removePuncationAndCapitals(l) + "\",\"sIdx\":"+sIdx+",\"eIdx\":"+eIdx+"}");
+          // System.out.print("\t\t\t{\"line\":\"" + removePuncationAndCapitals(l) + "\",\"sIdx\":"+sIdx+",\"eIdx\":"+eIdx+"}");
           ///System.out.print("\t\t\t\"" + removePuncationAndCapitals(l) + "\"");
 
           if (j < lines.size() - 1) {
@@ -208,7 +215,7 @@ System.out.println("w = " + w);
 
       if (OUTPUT_JSON) {
 
-        if (i < NUM_LINES - 1) {
+        if (i < NUM_ITERATIONS - 1) {
           System.out.print("\t\t]\n\t},\n");
         } else {
           System.out.print("\t\t]\n\t}\n]\n");

@@ -1,8 +1,8 @@
 d3 = require "d3"
-Vis = require "./vis"
-
+Vis = require "./vis/Main"
 vis = new Vis()
-# vis.speedMultiplier = 0.01
+
+# TODO: Clean this up!!
 
 do ->
   font_loaded = new Promise (resolve) ->
@@ -34,7 +34,6 @@ getJson = (apiCall, message) ->
 
 modeGetter = () ->
   order = [ "intro", "chain", "lines", "colocation", "howe", "howe", "howe", "howe", "howe", "howe" ]
-  # order = [ "intro", "chain", "lines", "colocation", "howe", "howe", "howe", "howe" ]
   index = -1
   ->
     if ++index is order.length then index = 0
@@ -42,11 +41,16 @@ modeGetter = () ->
 
 getModeFunc = (mode) ->
   switch mode
-    when "intro" then vis.addIntro
-    when "chain" then vis.addChain
-    when "colocation" then vis.addNetwork
-    when "lines" then vis.addLines
-    when "howe" then vis.addHowe
+    when "intro" then (d) -> vis.getVisType("IntroVis").start(d)
+    # when "intro" then vis.addIntro
+    # when "chain" then vis.addChain
+    when "chain" then (d) -> vis.getVisType("ChainVis").start(d)
+    # when "colocation" then vis.addNetwork
+    when "colocation" then (d) -> vis.getVisType("ColocationVis").start(d)
+    when "lines" then (d) -> vis.getVisType("LinesVis").start(d)
+    when "howe" then (d) -> vis.getVisType("HoweVis").start(d)
+    # when "lines" then (d) -> vis.getVisType("LinesVis").start(d)
+    # when "howe" then vis.addHowe
 
 getLastWord = (data, mode) ->
   if mode is "chain"
@@ -91,23 +95,28 @@ all = ->
 linesMode = ->
   console.info "Starting Lines Mode."
   getJson "get-lines.json", "Requesting Lines..."
-    .then vis.addLines
+    # .then vis.addLines
+    .then (d) -> vis.getVisType("LinesVis").start(d)
 
 chainMode = ->
   console.info "Starting Chain Mode."
   getJson "get-chain.json", "Requesting poetry chain..."
-    .then vis.addChain
+    # .then vis.addChain
+    .then (d) -> vis.getVisType("ChainVis").start(d)
 
 colocationMode = ->
   console.info "Starting Colocation Mode."
   getJson "get-colocation.json", "Requesting colocation network..."
-    .then vis.addNetwork
+    # .then vis.addNetwork
+    .then (d) -> vis.getVisType("ColocationVis").start(d)
 
 introMode = ->
   console.info "Starting Intro Mode."
-  vis.addIntro()
+  # vis.addIntro()
+  vis.getVisType("IntroVis").start()
 
 howeMode = ->
   console.info "Starting Howe Mode."
   getJson "get-howe.json", "Requesting list of lines..."
-    .then vis.addHowe
+    # .then vis.addHowe
+    .then (d) -> vis.getVisType("HoweVis").start(d)
