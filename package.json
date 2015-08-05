@@ -7,5 +7,9 @@
     "express": "^4.13.1",
     "load-bmfont": "^1.2.3",
     "promise": "^7.0.3"
+  },
+  "scripts": {
+    "start": "forever start -o ./stdout.log --uid \"poetry-vis\" --fifo --append -c \"nodemon --exitcrash\" index.coffee",
+    "stop": "forever stop \"poetry-vis\""
   }
 }
