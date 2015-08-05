@@ -28,6 +28,7 @@ _runScript = (scriptPath) ->
         json = JSON.parse(stdout)
       catch e
         console.error e
+        console.log stdout
 
       resolve json
     )
