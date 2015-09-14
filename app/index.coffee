@@ -11,8 +11,10 @@ do ->
       #image: "fnt/palatino.png"
       #font: "fnt/Baskerville-72.fnt",
       #image: "fnt/Baskerville-72.png"
-      font: "fnt/open-baskerville.fnt",
-      image: "fnt/open-baskerville.png"
+    #   font: "fnt/open-baskerville.fnt",
+    #   image: "fnt/open-baskerville.png"
+      font: "fnt/open-bask-2.fnt",
+      image: "fnt/open-bask-2.png"
     , (font, texture) -> resolve({ font: font, texture: texture }))
 
   font_loaded.then (obj) ->
