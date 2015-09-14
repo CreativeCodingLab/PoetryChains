@@ -8,7 +8,7 @@ module.exports = class IntroVis extends Main
     return @_addIntro()
 
   _addIntro: ->
-    text_title = @getLineObject("Poetry Chains & Colocation Nets")
+    text_title = @getLineObject("Poetry Chains & Collocation Nets")
     text_author = @getLineObject("by Angus Forbes, with Paul Murray")
 
     lineObject2 = @getLineObject("A series of animated explorations")
