@@ -9,8 +9,10 @@ do ->
     require('./load')(
       #font: "fnt/palatino.fnt",
       #image: "fnt/palatino.png"
-      font: "fnt/Baskerville-72.fnt",
-      image: "fnt/Baskerville-72.png"
+      #font: "fnt/Baskerville-72.fnt",
+      #image: "fnt/Baskerville-72.png"
+      font: "fnt/open-baskerville.fnt",
+      image: "fnt/open-baskerville.png"
     , (font, texture) -> resolve({ font: font, texture: texture }))
 
   font_loaded.then (obj) ->
