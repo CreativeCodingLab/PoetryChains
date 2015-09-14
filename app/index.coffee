@@ -7,8 +7,10 @@ vis = new Vis()
 do ->
   font_loaded = new Promise (resolve) ->
     require('./load')(
-      font: "fnt/palatino.fnt",
-      image: "fnt/palatino.png"
+      #font: "fnt/palatino.fnt",
+      #image: "fnt/palatino.png"
+      font: "fnt/Baskerville-72.fnt",
+      image: "fnt/Baskerville-72.png"
     , (font, texture) -> resolve({ font: font, texture: texture }))
 
   font_loaded.then (obj) ->
