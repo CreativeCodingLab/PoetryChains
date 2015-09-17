@@ -12,6 +12,8 @@ app = express()
 
 app.use require("cors")()
 
+process.env.PORT = 8766
+
 app.get "/log/:message", (request, response) ->
   console.log "#{new Date()}: #{request.params.message}"
   response.end()
@@ -49,6 +51,7 @@ static_path = path.resolve __dirname, "static"
 app.use("/", express.static(static_path))
 
 server = app.listen(process.env.PORT || 8888, process.env.IP, ->
+#server = app.listen(port, process.env.IP, ->
   a = server.address().address
   p = server.address().port
   console.log("Listening to the universe at #{a}, port #{p}")

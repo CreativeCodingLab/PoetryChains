@@ -13,7 +13,7 @@ module.exports = class Main
 
   log: (message) ->
     console.info message
-    d3.xhr("/log/#{message}").get()
+    d3.xhr("log/#{message}").get()
 
   getParentObject: ->
     obj = @scene.getObjectByName "parent"

@@ -30,7 +30,7 @@ do ->
       when "#howe" then do howeMode
 
 apiUrl = (call) ->
-  "#{window.location.origin}/api/#{call}"
+  "#{window.location.href}api/#{call}"
 
 getJson = (apiCall, message) ->
   new Promise (resolve) ->
