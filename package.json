@@ -2,14 +2,18 @@
   "private": true,
   "dependencies": {
     "browserify-middleware": "^7.0.0",
+    "coffee-script": "^1.12.7",
     "coffeeify": "^1.1.0",
     "cors": "^2.7.1",
     "express": "^4.13.1",
+    "forever": "^0.15.3",
     "load-bmfont": "^1.2.3",
     "promise": "^7.0.3"
   },
   "scripts": {
-    "start": "forever start -l ./forever.log -o ./stdout.log --uid \"poetry-vis\" --killSignal=SIGTERM --fifo --append -c \"nodemon --exitcrash\" index.coffee",
-    "stop": "forever stop \"poetry-vis\""
+    "start": "coffee index.coffee",
+    "start:forever": "forever start -l ./forever.log -o ./stdout.log --uid \"poetry-vis\" --killSignal=SIGTERM --fifo --append -c \"nodemon --exitcrash\" index.coffee",
+    "stop:forever": "forever stop \"poetry-vis\"",
+    "postinstall": "cd app && npm install"
   }
 }

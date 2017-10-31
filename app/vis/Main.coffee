@@ -1,7 +1,7 @@
 window.THREE = require "three"
 createGeometry = require 'three-bmfont-text'
 assert = require "assert"
-
+d3 = require "d3"
 Shader = require "./shaders/sdf"
 
 module.exports = class Main
