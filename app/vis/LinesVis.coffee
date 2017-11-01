@@ -1,4 +1,6 @@
 Main = require "./Main"
+d3 = require "d3"
+
 
 module.exports = class LinesVis extends Main
   lineSpacing: 40

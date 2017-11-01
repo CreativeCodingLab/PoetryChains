@@ -1,4 +1,6 @@
 Main = require "./Main"
+d3 = require "d3"
+
 
 module.exports = class HoweVis extends Main
   constructor: (@scene, @camera, @font, @texture) ->

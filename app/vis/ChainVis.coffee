@@ -1,5 +1,6 @@
 Main = require "./Main"
 assert = require "assert"
+d3 = require "d3"
 
 module.exports = class ChainVis extends Main
   constructor: (@scene, @camera, @font, @texture) ->

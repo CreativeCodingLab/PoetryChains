@@ -1,4 +1,5 @@
 Main = require "./Main"
+d3 = require "d3"
 
 module.exports = class ColocationVis extends Main
   constructor: (@scene, @camera, @font, @texture) ->
