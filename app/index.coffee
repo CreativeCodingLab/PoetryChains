@@ -30,7 +30,7 @@ do ->
       when "#howe" then do howeMode
 
 apiUrl = (call) ->
-  "#{window.location.href}api/#{call}"
+  "#{window.location.origin}/api/#{call}"
 
 getJson = (apiCall, message) ->
   new Promise (resolve) ->
@@ -102,7 +102,8 @@ linesMode = ->
   console.info "Starting Lines Mode."
   getJson "get-lines.json", "Requesting Lines..."
     # .then vis.addLines
-    .then (d) -> vis.getVisType("LinesVis").start(d)
+    .then (d) -> 
+      vis.getVisType("LinesVis").start(d)
 
 chainMode = ->
   console.info "Starting Chain Mode."
