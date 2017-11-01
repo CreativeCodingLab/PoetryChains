@@ -12,6 +12,7 @@
   },
   "scripts": {
     "start": "coffee index.coffee",
+    "build": "bash poetry-chains-java/PoetryChains/compileAll.sh",
     "start:forever": "forever start -l ./forever.log -o ./stdout.log --uid \"poetry-vis\" --killSignal=SIGTERM --fifo --append -c \"nodemon --exitcrash\" index.coffee",
     "stop:forever": "forever stop \"poetry-vis\"",
     "postinstall": "cd app && npm install"
