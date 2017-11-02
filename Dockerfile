@@ -57,6 +57,14 @@ RUN set -ex \
   && ln -s /opt/yarn/bin/yarn /usr/local/bin/yarnpkg \
   && rm yarn-v$YARN_VERSION.tar.gz.asc yarn-v$YARN_VERSION.tar.gz
 
-RUN npm install && npm build
+WORKDIR /usr/src/app
+
+COPY . .
+
+RUN pwd
+
+RUN yarn && yarn build
+
+EXPOSE 8766
 
 CMD npm start

@@ -1,5 +1,6 @@
 {
   "private": true,
+  "name": "poetry-chains",
   "dependencies": {
     "browserify-middleware": "^7.0.0",
     "coffee-script": "^1.12.7",
