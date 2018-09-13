@@ -1,5 +1,5 @@
 
-Poetry Chains is online at [http://poetrychains.soe.ucsc.edu:8766/](http://poetrychains.soe.ucsc.edu:8766/)
+Poetry Chains is online at [http://poetrychains.soe.ucsc.edu:8766/]: http://poetrychains.soe.ucsc.edu:8766
 
 ![](images/A-4.png)
 ![](images/A-5.png)
