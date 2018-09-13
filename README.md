@@ -1,6 +1,6 @@
 # PoetryChains
 
-Poetry Chains was featured in [Hybridity and Synesthesia](http://www.lydgalleriet.no/archive/hybridity-and-synaesthesia) at [Lydgalleriet](http://www.lydgalleriet.no/) in Bergen, Norway, as part of the [Electronic Literature Organization 2015](http://eliterature.org/).
+Poetry Chains was featured in the [Hybridity and Synesthesia](http://www.lydgalleriet.no/archive/hybridity-and-synaesthesia) show at [Lydgalleriet](http://www.lydgalleriet.no/) in Bergen, Norway, as part of [Electronic Literature Organization 2015](http://eliterature.org/).
 
 A online version based on Emily Dickinson's poems can be found at:
 [http://poetrychains.soe.ucsc.edu:8766/](http://poetrychains.soe.ucsc.edu:8766)
