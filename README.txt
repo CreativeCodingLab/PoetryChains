@@ -1,4 +1,17 @@
-Only have to do this once: (unless a new dependecy is added...)
+
+Poetry Chains is online at [http://poetrychains.soe.ucsc.edu:8766/](http://poetrychains.soe.ucsc.edu:8766/)
+
+![](images/A-4.png)
+![](images/A-5.png)
+![](images/B-1.png)
+![](images/C-1.png)
+
+
+---
+
+
+
+To install locally...
 
 > npm install
 
@@ -11,13 +24,16 @@ cd ..
 > npm install coffee-script -g
 
 
-To run...
+To run locally...
 
 > nodemon index.coffee
 
 > coffee index.coffee
 
-(will open up port 8888 on localhost, defaults to chain visualization)
+(will open up port 8888 on localhost, defaults to looping through all 4 animations, starting with the chain visualization)
+
+
+To specify a particular animation...
 
 
 http://localhost:8888/#colocation
@@ -26,13 +42,9 @@ http://localhost:8888/#lines
 
 http://localhost:8888/#chain
 
+http://localhost:8888/#howe
 
-***
 
-
-Angus - make it so each Java program can be started with a arg - that is a
-word to start it, so that Paul can seed the vis with a word from the previous
-vis.
 
 
 
