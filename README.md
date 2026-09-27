@@ -1,5 +1,10 @@
 # PoetryChains
 
+> **There is a modern version:** [angusforbes/poetry-chains](https://github.com/angusforbes/poetry-chains), a 2026 port
+> to current three.js with Slug GPU text, running entirely in the browser, with live parameters and a scrubbable timeline.
+> Watch it at [angusforbes.github.io/poetry-chains](https://angusforbes.github.io/poetry-chains/).
+> This repository is kept as the archive of the 2015 original (CoffeeScript front end, Java corpus engine).
+
 Poetry Chains was featured in the [Hybridity and Synesthesia](http://www.lydgalleriet.no/archive/hybridity-and-synaesthesia) show at [Lydgalleriet](http://www.lydgalleriet.no/) in Bergen, Norway, as part of [Electronic Literature Organization 2015](http://eliterature.org/).
 
 A online version based on Emily Dickinson's poems can be found at:
